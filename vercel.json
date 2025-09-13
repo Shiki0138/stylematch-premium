@@ -1,0 +1,82 @@
+{
+  "buildCommand": "pnpm build",
+  "devCommand": "pnpm dev",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "functions": {
+    "apps/web/src/app/api/trpc/[...trpc]/route.ts": {
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/trpc/(.*)",
+      "destination": "/api/trpc/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.stripe.com; frame-src https://js.stripe.com;"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ],
+  "env": {
+    "NEXTAUTH_URL": "@nextauth-url",
+    "NEXTAUTH_SECRET": "@nextauth-secret",
+    "DATABASE_URL": "@database-url",
+    "GOOGLE_CLIENT_ID": "@google-client-id",
+    "GOOGLE_CLIENT_SECRET": "@google-client-secret",
+    "LINE_CLIENT_ID": "@line-client-id",
+    "LINE_CLIENT_SECRET": "@line-client-secret",
+    "SENDGRID_API_KEY": "@sendgrid-api-key",
+    "EMAIL_FROM": "@email-from",
+    "AI_SERVICE_URL": "@ai-service-url",
+    "AI_SERVICE_API_KEY": "@ai-service-api-key",
+    "AWS_ACCESS_KEY_ID": "@aws-access-key-id",
+    "AWS_SECRET_ACCESS_KEY": "@aws-secret-access-key",
+    "AWS_REGION": "@aws-region",
+    "AWS_S3_BUCKET": "@aws-s3-bucket",
+    "CDN_URL": "@cdn-url",
+    "STRIPE_SECRET_KEY": "@stripe-secret-key",
+    "STRIPE_PUBLISHABLE_KEY": "@stripe-publishable-key",
+    "STRIPE_WEBHOOK_SECRET": "@stripe-webhook-secret"
+  }
+}
