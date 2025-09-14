@@ -7,6 +7,7 @@ import { MatchingService } from '@/lib/services/matching.service';
 import { StylistCard } from '@/components/stylists/StylistCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Button } from '@/components/ui/Button';
+import { PulseButton, MagicalLoading, HoverSparkle } from '@/components/ui/MicroInteractions';
 import { Stylist, MatchingResult } from '@/types/models';
 
 export default function StylistsPage() {
@@ -115,31 +116,31 @@ export default function StylistsPage() {
           <div className="flex flex-wrap gap-2 mb-4">
             {userData?.diagnoses?.faceShape && (
               <>
-                <Button
-                  variant={filterMode === 'matching' ? 'primary' : 'outline'}
-                  size="sm"
+                <PulseButton
                   onClick={() => setFilterMode('matching')}
+                  variant={filterMode === 'matching' ? 'primary' : 'secondary'}
+                  className="text-sm px-4 py-2"
                 >
-                  マッチング順
-                </Button>
-                <Button
-                  variant={filterMode === 'all' ? 'primary' : 'outline'}
-                  size="sm"
+                  マッチング順 💕
+                </PulseButton>
+                <PulseButton
                   onClick={() => setFilterMode('all')}
+                  variant={filterMode === 'all' ? 'primary' : 'secondary'}
+                  className="text-sm px-4 py-2"
                 >
-                  すべて表示
-                </Button>
+                  すべて表示 👀
+                </PulseButton>
               </>
             )}
             
             {!locationEnabled && (
-              <Button
-                variant="outline"
-                size="sm"
+              <PulseButton
                 onClick={requestLocation}
+                variant="secondary"
+                className="text-sm px-4 py-2"
               >
                 📍 現在地から探す
-              </Button>
+              </PulseButton>
             )}
           </div>
 
@@ -153,20 +154,29 @@ export default function StylistsPage() {
 
         {/* ローディング */}
         {isLoading && (
-          <div className="flex justify-center py-12">
-            <LoadingSpinner size="lg" />
-          </div>
+          <MagicalLoading 
+            isLoading={true} 
+            message="あなたにぴったりの美容師を探しています✨"
+          />
         )}
 
         {/* 美容師一覧 */}
         {!isLoading && stylists.length > 0 && (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {stylists.map((stylist) => (
-              <StylistCard
-                key={stylist.id}
-                stylist={stylist}
-                matchingResult={getMatchingResult(stylist.id)}
-              />
+            {stylists.map((stylist, index) => (
+              <HoverSparkle key={stylist.id}>
+                <div 
+                  style={{ 
+                    animationDelay: `${index * 0.1}s` 
+                  }}
+                  className="animate-fade-in-up"
+                >
+                  <StylistCard
+                    stylist={stylist}
+                    matchingResult={getMatchingResult(stylist.id)}
+                  />
+                </div>
+              </HoverSparkle>
             ))}
           </div>
         )}
@@ -188,21 +198,25 @@ export default function StylistsPage() {
 
         {/* 診断を促すCTA */}
         {!userData?.diagnoses?.faceShape && !isLoading && (
-          <div className="mt-12 text-center bg-white p-8 rounded-xl shadow-soft">
-            <h2 className="text-xl font-bold mb-4">
-              AI診断で最適な美容師を見つけましょう
-            </h2>
-            <p className="text-text-secondary mb-6">
-              顔型とパーソナルカラーを診断することで、
-              あなたに最適な美容師をマッチングします
-            </p>
-            <Button
-              size="lg"
-              onClick={() => window.location.href = '/diagnosis'}
-            >
-              無料診断を始める
-            </Button>
-          </div>
+          <HoverSparkle>
+            <div className="mt-12 text-center bg-gradient-to-br from-pink-50 to-purple-50 border-2 border-pink-200 p-8 rounded-xl shadow-soft">
+              <div className="text-4xl mb-4">✨</div>
+              <h2 className="text-xl font-bold mb-4">
+                AI診断で運命の美容師を見つけましょう
+              </h2>
+              <p className="text-text-secondary mb-6">
+                顔型とパーソナルカラーを診断することで、<br />
+                あなたに最適な美容師をマッチングします
+              </p>
+              <PulseButton
+                onClick={() => window.location.href = '/diagnosis'}
+                variant="magical"
+                className="text-lg px-8 py-4"
+              >
+                ✨ 無料診断を始める
+              </PulseButton>
+            </div>
+          </HoverSparkle>
         )}
       </div>
     </div>

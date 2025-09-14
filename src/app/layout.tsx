@@ -37,7 +37,11 @@ export const metadata: Metadata = {
     description: "AI技術で顔型診断・パーソナルカラー診断を行い、あなたに最適な美容師をマッチング",
     images: ["/og-image.png"],
   },
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({

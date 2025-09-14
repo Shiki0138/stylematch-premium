@@ -1,6 +1,8 @@
 import { collection, query, where, getDocs, orderBy, limit, GeoPoint } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Stylist, FaceShape, PersonalColor, MatchingResult } from '@/types/models';
+import { StylistProfile, MatchingResult as NewMatchingResult } from '@/types/database';
+import { StylistService } from '@/lib/firebase/firestore';
 import { useMockFirebase, mockStylists } from '@/lib/firebase/mock-config';
 
 interface MatchingCriteria {
@@ -15,9 +17,259 @@ interface MatchingCriteria {
   serviceType?: string;
 }
 
+// 新しいマッチング基準型
+export interface NewMatchingCriteria {
+  faceShape: string;
+  personalColor: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+    radiusKm: number;
+  };
+  priceRange?: {
+    min: number;
+    max: number;
+  };
+  ageGroup?: string;
+  preferredGender?: 'male' | 'female' | 'any';
+  minRating?: number;
+  availableOnly?: boolean;
+}
+
 export class MatchingService {
   /**
-   * 診断結果に基づいて美容師をマッチング
+   * 新しいマッチングシステム - 診断結果に基づいて最適な美容師を検索
+   */
+  static async findMatchingStylistsNew(criteria: NewMatchingCriteria): Promise<NewMatchingResult[]> {
+    try {
+      // 美容師一覧を取得
+      const stylists = await StylistService.getStylists({
+        minRating: criteria.minRating || 4.0,
+        userLocation: criteria.location ? {
+          lat: criteria.location.latitude,
+          lng: criteria.location.longitude
+        } : undefined,
+        maxDistance: criteria.location?.radiusKm,
+        limit: 50 // 初期フィルタリング用
+      });
+
+      if (stylists.length === 0) {
+        return [];
+      }
+
+      // 各美容師のマッチングスコアを計算
+      const results: NewMatchingResult[] = [];
+      
+      for (const stylist of stylists) {
+        const matchingResult = this.calculateMatchingScoreNew(stylist, criteria);
+        if (matchingResult.overallScore >= 60) { // 60%以上のマッチング率のみ
+          results.push(matchingResult);
+        }
+      }
+
+      // スコア降順でソート
+      return results.sort((a, b) => b.overallScore - a.overallScore).slice(0, 20);
+    } catch (error) {
+      console.error('Error finding matching stylists:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 新しいマッチングスコア計算（日本人女性向け最適化）
+   */
+  private static calculateMatchingScoreNew(
+    stylist: StylistProfile, 
+    criteria: NewMatchingCriteria
+  ): NewMatchingResult {
+    const weights = {
+      faceShape: 0.35,      // 顔型適合度（重要）
+      personalColor: 0.25,  // パーソナルカラー適合度
+      location: 0.15,       // 立地便利度
+      rating: 0.15,         // 評価スコア
+      availability: 0.05,   // 予約可能度
+      price: 0.05          // 価格適正度
+    };
+
+    const faceShapeScore = this.calculateFaceShapeMatchNew(stylist, criteria.faceShape);
+    const personalColorScore = this.calculatePersonalColorMatchNew(stylist, criteria.personalColor);
+    const locationScore = criteria.location ? 
+      this.calculateLocationScoreNew(stylist, criteria.location) : 80;
+    const ratingScore = this.calculateRatingScoreNew(stylist);
+    const availabilityScore = this.calculateAvailabilityScoreNew(stylist);
+    const priceScore = criteria.priceRange ? 
+      this.calculatePriceScoreNew(stylist, criteria.priceRange) : 80;
+
+    const scores = {
+      faceShapeMatch: faceShapeScore,
+      personalColorMatch: personalColorScore,
+      locationScore,
+      ratingScore,
+      availabilityScore,
+      priceScore
+    };
+
+    const overallScore = Math.round(
+      faceShapeScore * weights.faceShape +
+      personalColorScore * weights.personalColor +
+      locationScore * weights.location +
+      ratingScore * weights.rating +
+      availabilityScore * weights.availability +
+      priceScore * weights.price
+    );
+
+    const reasons = this.generateMatchingReasonsNew(stylist, scores, criteria);
+
+    return {
+      userId: 'temp-user-id',
+      stylistId: stylist.id,
+      overallScore,
+      scores,
+      weights,
+      reasons,
+      calculatedAt: new Date(),
+      algorithmVersion: '1.0.0'
+    };
+  }
+
+  private static calculateFaceShapeMatchNew(stylist: StylistProfile, faceShape: string): number {
+    const { specialties } = stylist;
+    
+    const faceShapeMap: { [key: string]: string } = {
+      'tamago': 'tamago', 'maru': 'maru', 'shikaku': 'shikaku',
+      'heart': 'heart', 'omochou': 'omochou',
+      'oval': 'tamago', 'round': 'maru', 'square': 'shikaku', 'oblong': 'omochou'
+    };
+
+    const mappedFaceShape = faceShapeMap[faceShape] || faceShape;
+
+    if (specialties.faceShapes.includes(mappedFaceShape as any)) {
+      return 95;
+    }
+
+    const similarShapes: { [key: string]: string[] } = {
+      'tamago': ['maru', 'heart'], 'maru': ['tamago', 'shikaku'],
+      'shikaku': ['maru', 'omochou'], 'heart': ['tamago', 'omochou'],
+      'omochou': ['heart', 'shikaku']
+    };
+
+    const similar = similarShapes[mappedFaceShape] || [];
+    for (const shape of similar) {
+      if (specialties.faceShapes.includes(shape as any)) {
+        return 75;
+      }
+    }
+
+    return specialties.faceShapes.length >= 4 ? 65 : 40;
+  }
+
+  private static calculatePersonalColorMatchNew(stylist: StylistProfile, personalColor: string): number {
+    const { specialties } = stylist;
+
+    if (specialties.personalColors.includes(personalColor as any)) {
+      return 90;
+    }
+
+    const similarColors: { [key: string]: string[] } = {
+      'spring': ['autumn'], 'summer': ['winter'],
+      'autumn': ['spring'], 'winter': ['summer']
+    };
+
+    const similar = similarColors[personalColor] || [];
+    for (const color of similar) {
+      if (specialties.personalColors.includes(color as any)) {
+        return 70;
+      }
+    }
+
+    return specialties.personalColors.length >= 3 ? 60 : 35;
+  }
+
+  private static calculateLocationScoreNew(
+    stylist: StylistProfile, 
+    location: { latitude: number; longitude: number; radiusKm: number }
+  ): number {
+    const distance = this.calculateDistance(
+      location.latitude, location.longitude,
+      stylist.location.coordinates.latitude,
+      stylist.location.coordinates.longitude
+    );
+
+    if (distance <= 2) return 100;
+    if (distance <= 5) return 85;
+    if (distance <= 10) return 70;
+    if (distance <= 20) return 50;
+    return 25;
+  }
+
+  private static calculateRatingScoreNew(stylist: StylistProfile): number {
+    return Math.min(Math.round(stylist.ratings.overall * 20), 100);
+  }
+
+  private static calculateAvailabilityScoreNew(stylist: StylistProfile): number {
+    if (!stylist.isActive) return 0;
+    
+    const lastActive = stylist.lastActiveAt;
+    if (!lastActive) return 60;
+
+    const daysSinceActive = Math.floor(
+      (new Date().getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (daysSinceActive <= 1) return 95;
+    if (daysSinceActive <= 3) return 80;
+    if (daysSinceActive <= 7) return 65;
+    return 40;
+  }
+
+  private static calculatePriceScoreNew(
+    stylist: StylistProfile, 
+    priceRange: { min: number; max: number }
+  ): number {
+    const pricing = stylist.pricing;
+    if (!pricing.cut) return 70;
+
+    const avgPrice = (pricing.cut.min + pricing.cut.max) / 2;
+
+    if (avgPrice >= priceRange.min && avgPrice <= priceRange.max) {
+      return 90;
+    }
+
+    const deviation = avgPrice < priceRange.min ? 
+      priceRange.min - avgPrice : avgPrice - priceRange.max;
+    const deviationPercent = deviation / priceRange.max;
+    
+    return Math.max(20, Math.round(90 - (deviationPercent * 100)));
+  }
+
+  private static generateMatchingReasonsNew(
+    stylist: StylistProfile,
+    scores: any,
+    criteria: NewMatchingCriteria
+  ): string[] {
+    const reasons: string[] = [];
+
+    if (scores.faceShapeMatch >= 90) {
+      reasons.push(`${criteria.faceShape}の顔型を得意としています`);
+    }
+    if (scores.personalColorMatch >= 85) {
+      reasons.push(`${criteria.personalColor}のパーソナルカラーに精通しています`);
+    }
+    if (scores.ratingScore >= 90) {
+      reasons.push(`お客様からの評価が非常に高いです（${stylist.ratings.overall.toFixed(1)}★）`);
+    }
+    if (scores.locationScore >= 85) {
+      reasons.push('アクセスが良好な立地にあります');
+    }
+    if (stylist.experience >= 10) {
+      reasons.push(`${stylist.experience}年の豊富な経験があります`);
+    }
+
+    return reasons.slice(0, 3);
+  }
+
+  /**
+   * 診断結果に基づいて美容師をマッチング（既存API）
    */
   static async findMatchingStylists(criteria: MatchingCriteria): Promise<MatchingResult[]> {
     try {

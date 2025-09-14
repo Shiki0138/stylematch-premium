@@ -40,18 +40,19 @@ AIを活用した顔型診断とパーソナルカラー診断により、ユー
 ### 1. リポジトリのクローン
 
 ```bash
-git clone https://github.com/Shiki0138/stylematch-premium.git
-cd stylematch-premium
+git clone https://github.com/your-username/stylematch.git
+cd stylematch
 ```
 
 ### 2. 依存関係のインストール
 
 #### フロントエンド
 ```bash
+# Node.js 18.x以上が必要です
 npm install
 ```
 
-#### バックエンド
+#### バックエンド（Python）
 ```bash
 cd backend
 python -m venv venv
@@ -68,9 +69,21 @@ cp .env.example .env.local
 ```
 
 必要な環境変数：
-- Firebase設定
-- AI API設定
-- 決済API設定（Stripe, LINE Pay, PayPay）
+- **Firebase設定** (必須)
+  - `NEXT_PUBLIC_FIREBASE_API_KEY`
+  - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+  - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+  - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+  - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+  - `NEXT_PUBLIC_FIREBASE_APP_ID`
+- **バックエンドURL** (必須)
+  - `NEXT_PUBLIC_BACKEND_URL` (デフォルト: http://localhost:8000)
+- **その他** (オプション)
+  - OpenAI API設定
+  - Stripe決済設定
+  - メール送信設定
+
+詳細なセットアップ手順は [SETUP.md](./SETUP.md) を参照してください。
 
 ### 4. 開発サーバーの起動
 
@@ -79,13 +92,23 @@ cp .env.example .env.local
 npm run dev
 ```
 
-#### バックエンド（ポート5000）
+#### バックエンド（ポート8000）
 ```bash
 cd backend
 python app.py
 ```
 
 アプリケーションは http://localhost:3003 でアクセスできます。
+
+### 5. ビルドとプロダクション実行
+
+```bash
+# ビルド
+npm run build
+
+# プロダクション実行
+npm run start
+```
 
 ## 🏗 プロジェクト構造
 

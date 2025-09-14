@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { BookingService } from '@/lib/services/booking.service';
@@ -11,7 +11,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { formatDate, formatPrice } from '@/lib/utils';
 
-export default function BookingCompletePage() {
+function BookingCompleteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bookingId = searchParams.get('id');
@@ -178,5 +178,17 @@ export default function BookingCompletePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function BookingCompletePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    }>
+      <BookingCompleteContent />
+    </Suspense>
   );
 }

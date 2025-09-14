@@ -15,17 +15,21 @@ import {
 import { auth, db } from './config';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { User } from '@/types/models';
+import { UserProfile } from '@/types/database';
+import { UserService } from './firestore';
 import { useMockFirebase, mockUser, mockUserData } from './mock-config';
 
 interface AuthContextType {
   currentUser: FirebaseUser | null;
-  userData: User | null;
+  userData: User | null; // 後方互換性のため保持
+  userProfile: UserProfile | null; // 新しいプロフィール構造
   loading: boolean;
-  signup: (email: string, password: string, name: string, birthYear: number) => Promise<void>;
+  signup: (email: string, password: string, displayName: string, additionalData?: Partial<UserProfile>) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  updateUserProfile: (updates: Partial<UserProfile>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,40 +44,56 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
-  const [userData, setUserData] = useState<User | null>(null);
+  const [userData, setUserData] = useState<User | null>(null); // 後方互換性
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Fetch user data from Firestore
   const fetchUserData = async (userId: string) => {
     try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      if (userDoc.exists()) {
-        setUserData({ id: userDoc.id, ...userDoc.data() } as User);
+      const profile = await UserService.getUser(userId);
+      if (profile) {
+        setUserProfile(profile);
+        // 後方互換性のため古い形式も設定
+        setUserData({
+          id: userId,
+          email: profile.email,
+          name: profile.displayName || profile.firstName || 'ユーザー',
+          birthYear: profile.age ? new Date().getFullYear() - profile.age : undefined,
+          diagnoses: {}, // 後で診断データを取得
+          preferences: {
+            priceRange: [3000, 10000],
+            preferredArea: []
+          }
+        } as User);
       }
+      
+      // ログイン時刻を更新
+      await UserService.updateLastLogin(userId);
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
   };
 
   // Sign up new user
-  const signup = async (email: string, password: string, name: string, birthYear: number) => {
+  const signup = async (
+    email: string, 
+    password: string, 
+    displayName: string, 
+    additionalData?: Partial<UserProfile>
+  ) => {
     try {
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
       
       // Update display name
-      await updateProfile(user, { displayName: name });
+      await updateProfile(user, { displayName });
 
-      // Create user document in Firestore
-      await setDoc(doc(db, 'users', user.uid), {
+      // Create user profile in Firestore
+      await UserService.createUser(user.uid, {
         email,
-        name,
-        birthYear,
-        createdAt: serverTimestamp(),
-        diagnoses: {},
-        preferences: {
-          priceRange: [3000, 10000],
-          preferredArea: []
-        }
+        displayName,
+        photoURL: user.photoURL,
+        ...additionalData
       });
 
       // Fetch the created user data
@@ -98,21 +118,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const provider = new GoogleAuthProvider();
       const { user } = await signInWithPopup(auth, provider);
 
-      // Check if user document exists
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      // Check if user profile exists
+      const existingProfile = await UserService.getUser(user.uid);
       
-      if (!userDoc.exists()) {
-        // Create new user document for Google sign-in
-        await setDoc(doc(db, 'users', user.uid), {
-          email: user.email,
-          name: user.displayName || 'ユーザー',
-          birthYear: new Date().getFullYear() - 25, // Default age
-          createdAt: serverTimestamp(),
-          diagnoses: {},
-          preferences: {
-            priceRange: [3000, 10000],
-            preferredArea: []
-          }
+      if (!existingProfile) {
+        // Create new user profile for Google sign-in
+        await UserService.createUser(user.uid, {
+          email: user.email || '',
+          displayName: user.displayName || 'ユーザー',
+          photoURL: user.photoURL,
+          age: 25 // Default age
         });
       }
 
@@ -127,7 +142,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await signOut(auth);
       setUserData(null);
+      setUserProfile(null);
     } catch (error) {
+      throw error;
+    }
+  };
+  
+  // Update user profile
+  const updateUserProfile = async (updates: Partial<UserProfile>) => {
+    try {
+      if (!currentUser) throw new Error('No user logged in');
+      
+      await UserService.updateUser(currentUser.uid, updates);
+      
+      // Refresh user data
+      await fetchUserData(currentUser.uid);
+    } catch (error) {
+      console.error('Error updating user profile:', error);
       throw error;
     }
   };
@@ -143,8 +174,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Listen to auth state changes
   useEffect(() => {
-    // モック環境の場合
-    if (useMockFirebase) {
+    // テストモードまたはモック環境の場合
+    if (process.env.NEXT_PUBLIC_ENABLE_TEST_MODE === 'true' || useMockFirebase) {
       setCurrentUser(mockUser as any);
       setUserData(mockUserData as User);
       setLoading(false);
@@ -167,12 +198,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value: AuthContextType = {
     currentUser,
     userData,
+    userProfile,
     loading,
     signup,
     login,
     loginWithGoogle,
     logout,
-    resetPassword
+    resetPassword,
+    updateUserProfile
   };
 
   return (

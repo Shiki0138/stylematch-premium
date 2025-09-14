@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { MatchingService } from '@/lib/services/matching.service';
@@ -13,7 +13,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Stylist, ServiceType } from '@/types/models';
 import { formatPrice, formatDate } from '@/lib/utils';
 
-export default function NewBookingPage() {
+function BookingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { currentUser, userData } = useAuth();
@@ -390,6 +390,18 @@ export default function NewBookingPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function NewBookingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    }>
+      <BookingContent />
+    </Suspense>
   );
 }
 

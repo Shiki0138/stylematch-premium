@@ -20,7 +20,7 @@ export const Button: React.FC<ButtonProps> = ({
   as = 'button',
   ...props
 }) => {
-  const baseStyles = 'font-bold rounded-3xl transition-base focus-ring inline-flex items-center justify-center gap-2';
+  const baseStyles = 'font-bold rounded-3xl transition-base focus-ring inline-flex items-center justify-center gap-2 touch-feedback';
   
   const variants = {
     primary: 'bg-primary text-white hover:bg-primary-600 disabled:bg-gray-300',

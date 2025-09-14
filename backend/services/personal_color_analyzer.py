@@ -345,3 +345,30 @@ class PersonalColorAnalyzer:
     def _rgb_to_hex(color: Tuple[int, int, int]) -> str:
         """RGBを16進数カラーコードに変換"""
         return '#{:02x}{:02x}{:02x}'.format(int(color[0]), int(color[1]), int(color[2]))
+    
+    def get_japanese_beauty_tips(self, personal_color: str) -> List[str]:
+        """日本人女性向け美容ティップス"""
+        tips = {
+            'spring': [
+                'コーラル系のチークで健康的な血色を演出',
+                'ゴールド系のアクセサリーでコーディネート',
+                'ビタミンカラーのファッションが似合う'
+            ],
+            'summer': [
+                'パステルカラーで上品な印象を',
+                'シルバー系のアクセサリーがベスト',
+                'ソフトマットな質感のメイクを選んで'
+            ],
+            'autumn': [
+                'アーシーカラーで大人の魅力を演出',
+                'ゴールドやブロンズのアクセサリー',
+                'マットな質感のリップがおすすめ'
+            ],
+            'winter': [
+                'コントラストのはっきりしたメイク',
+                'プラチナやホワイトゴールドのアクセサリー',
+                '鮮やかな赤や深いピンクが似合う'
+            ]
+        }
+        
+        return tips.get(personal_color, tips['spring'])

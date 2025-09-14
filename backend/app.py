@@ -15,7 +15,7 @@ from services.personal_color_analyzer import PersonalColorAnalyzer
 from utils.image_processor import ImageProcessor
 
 app = Flask(__name__)
-CORS(app, origins=['http://localhost:3000', 'https://stylematch.app'])
+CORS(app, origins=['http://localhost:3000', 'http://localhost:3003', 'https://stylematch.app'])
 
 # Firebase初期化
 if not firebase_admin._apps:
@@ -104,10 +104,15 @@ def diagnose_face():
             'success': True,
             'data': {
                 'faceShape': result['face_shape'],
+                'faceShapeJapanese': result.get('face_shape_japanese', result['face_shape']),
+                'description': result.get('description', ''),
                 'confidence': result['confidence'],
                 'landmarks': result.get('landmarks', []),
+                'measurements': result.get('measurements', {}),
+                'hairstyleRecommendations': result.get('hairstyle_recommendations', {}),
                 'processingTime': processing_time,
-                'diagnosisId': diagnosis_ref.id
+                'diagnosisId': diagnosis_ref.id,
+                'analysisMethod': result.get('analysis_method', '')
             }
         })
         
@@ -183,11 +188,20 @@ def diagnose_color():
             'success': True,
             'data': {
                 'personalColor': result['personal_color'],
+                'personalColorJapanese': result.get('personal_color_japanese', result['personal_color']),
+                'description': result.get('description', ''),
                 'subType': result['sub_type'],
                 'confidence': result['confidence'],
-                'colorPalette': result['color_palette'],
+                'colorPalette': result.get('color_palette', {}),
+                'avoidColors': result.get('avoid_colors', []),
+                'celebrityExamples': result.get('celebrity_examples', []),
+                'detectedColors': result.get('detected_colors', {}),
+                'makeupRecommendations': result.get('makeup_recommendations', {}),
+                'brandRecommendations': result.get('brand_recommendations', {}),
+                'beautyTips': color_analyzer.get_japanese_beauty_tips(result['personal_color']),
                 'processingTime': processing_time,
-                'diagnosisId': diagnosis_ref.id
+                'diagnosisId': diagnosis_ref.id,
+                'analysisMethod': result.get('analysis_method', '')
             }
         })
         
@@ -281,38 +295,53 @@ def complete_diagnosis():
         }), 500
 
 def _get_hairstyle_recommendations(face_shape, personal_color):
-    """顔型とパーソナルカラーに基づくヘアスタイルの推奨"""
+    """日本人女性向け顔型とパーソナルカラーに基づくヘアスタイル推奨"""
+    # 日本語の顔型名から英語にマッピング
+    face_shape_map = {
+        'tamago': 'oval', 'maru': 'round', 'shikaku': 'square', 
+        'heart': 'heart', 'omochou': 'oblong'
+    }
+    english_face_shape = face_shape_map.get(face_shape, face_shape)
+    
     recommendations = {
-        'oval': ['ロングヘア', 'ボブ', 'ショートヘア', 'センターパート'],
-        'round': ['レイヤードロング', 'サイドパート', 'アシンメトリー'],
-        'square': ['ソフトウェーブ', 'サイドバング', 'ロングレイヤー'],
-        'heart': ['サイドスウィープバング', 'ミディアムレングス', 'ボブ'],
-        'oblong': ['バング付きスタイル', 'ウェーブ', 'ボリュームスタイル']
+        'oval': ['どんなスタイルもOK', 'ボブ・ロング・ショート全て◎', 'ストレート・カール両方似合う'],
+        'round': ['ロングヘア（縦ラインを強調）', 'ひし形シルエット', 'サイドに流す前髪', 'レイヤーカット'],
+        'square': ['ゆるふわカール', 'ひし形ショートボブ', '前髪ありのミディアム', 'レイヤーで動きを出す'],
+        'heart': ['顎ラインのボブ', '内巻きカール', '重めの前髪', '顎周りにボリューム'],
+        'oblong': ['横にボリュームのあるボブ', 'ゆるめのパーマ', '厚めの前髪', 'ひし形シルエット']
     }
     
+    # パーソナルカラー別ヘアカラー推奨
     color_styles = {
-        'spring': ['明るめカラー', 'ハイライト'],
-        'summer': ['アッシュ系', 'ローライト'],
-        'autumn': ['暖色系カラー', 'オレンジブラウン'],
-        'winter': ['ダークトーン', 'ツヤ感重視']
+        'spring': ['明るいブラウン', 'コーラル系カラー', 'ハイライトで立体感'],
+        'summer': ['アッシュブラウン', 'グレージュ系', 'ソフトなカラーリング'],
+        'autumn': ['濃いブラウン', 'オレンジブラウン', '深みのあるカラー'],
+        'winter': ['黒髪または暗いブラウン', 'クールトーン', 'コントラストのはっきり']
     }
     
-    face_styles = recommendations.get(face_shape, [])
-    color_prefs = color_styles.get(personal_color, [])
+    face_styles = recommendations.get(english_face_shape, recommendations['oval'])
+    color_prefs = color_styles.get(personal_color, color_styles['spring'])
     
     return face_styles + color_prefs
 
 def _get_styles_to_avoid(face_shape):
-    """顔型に基づいて避けるべきスタイル"""
+    """日本人女性向け顔型別避けるべきスタイル"""
+    # 日本語の顔型名から英語にマッピング
+    face_shape_map = {
+        'tamago': 'oval', 'maru': 'round', 'shikaku': 'square',
+        'heart': 'heart', 'omochou': 'oblong'
+    }
+    english_face_shape = face_shape_map.get(face_shape, face_shape)
+    
     avoid_styles = {
-        'oval': [],  # オーバル型は基本的に何でも似合う
-        'round': ['ボリュームのあるカール', '顎ラインのボブ'],
-        'square': ['ストレートボブ', 'ブラントカット'],
-        'heart': ['トップヘビー', 'フルバング'],
-        'oblong': ['超ロングストレート', 'センターパート']
+        'oval': ['特になし'],  # 卵型は基本的に何でも似合う
+        'round': ['ぱっつん前髪', 'ボブ（顎ライン）', '横にボリュームを出しすぎるカール'],
+        'square': ['ストレートボブ', 'ワンレングス', '角を強調するスタイル'],
+        'heart': ['トップにボリューム', 'かき上げ前髪', 'ショートスタイル'],
+        'oblong': ['センター分け', 'ロングストレート', '縦のラインを強調するスタイル']
     }
     
-    return avoid_styles.get(face_shape, [])
+    return avoid_styles.get(english_face_shape, [])
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

@@ -8,6 +8,7 @@ import { CameraCapture } from '@/components/diagnosis/CameraCapture';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { PulseButton, MagicalLoading, SuccessConfetti, HoverSparkle } from '@/components/ui/MicroInteractions';
 import axios from 'axios';
 
 export default function DiagnosisPage() {
@@ -25,6 +26,7 @@ export default function DiagnosisPage() {
   const [diagnosisType, setDiagnosisType] = useState<'face' | 'color' | 'complete'>('complete');
   const [capturedImage, setCapturedImage] = useState<string>('');
   const [processingMessage, setProcessingMessage] = useState('画像を解析中...');
+  const [showConfetti, setShowConfetti] = useState(false);
 
   // ログインチェック
   if (!currentUser) {
@@ -50,12 +52,21 @@ export default function DiagnosisPage() {
   const processDiagnosis = async (imageData: string) => {
     try {
       setIsLoading(true);
+      setProcessingMessage('AI が画像を解析しています...');
       
       // API URLの設定
       const apiUrl = process.env.NEXT_PUBLIC_AI_API_URL || 'http://localhost:5000';
       const endpoint = diagnosisType === 'complete' 
         ? '/api/diagnosis/complete'
         : `/api/diagnosis/${diagnosisType}`;
+
+      // プロセス表示メッセージを更新
+      setTimeout(() => setProcessingMessage('顔の特徴点を検出中... 🔍'), 2000);
+      setTimeout(() => setProcessingMessage('顔型を分析中... 📐'), 4000);
+      if (diagnosisType === 'complete' || diagnosisType === 'color') {
+        setTimeout(() => setProcessingMessage('パーソナルカラーを解析中... 🎨'), 6000);
+      }
+      setTimeout(() => setProcessingMessage('最適な美容師をマッチング中... 💕'), 8000);
 
       // 画像データをBase64形式で送信
       const response = await axios.post(`${apiUrl}${endpoint}`, {
@@ -69,19 +80,52 @@ export default function DiagnosisPage() {
       });
 
       if (response.data.success) {
-        setCurrentDiagnosis(response.data.data);
+        // 診断結果を新しいデータ構造に合わせて変換
+        const diagnosisResult = {
+          id: response.data.data.diagnosisId || 'temp-id',
+          faceShape: response.data.data.faceShape,
+          personalColor: response.data.data.personalColor,
+          colorSubType: response.data.data.subType,
+          confidence: {
+            faceShape: response.data.data.confidence?.faceShape || response.data.data.confidence,
+            personalColor: response.data.data.confidence?.personalColor || response.data.data.confidence
+          },
+          recommendations: {
+            hairstyles: response.data.data.hairstyleRecommendations?.recommended_styles || 
+                       response.data.data.recommendations?.hairstyles || [],
+            avoidStyles: response.data.data.hairstyleRecommendations?.avoid_styles ||
+                        response.data.data.recommendations?.avoidStyles || [],
+            celebrityMatches: response.data.data.hairstyleRecommendations?.celebrity_examples || []
+          },
+          measurements: response.data.data.measurements || {},
+          colorPalette: response.data.data.colorPalette || {},
+          processingTime: response.data.data.processingTime || 0,
+          analysisMethod: response.data.data.analysisMethod || 'AI Analysis'
+        };
+
+        setCurrentDiagnosis(diagnosisResult);
         setDiagnosisImage(imageData);
         setStep('result');
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
       } else {
         throw new Error(response.data.error || '診断に失敗しました');
       }
     } catch (error) {
       console.error('診断エラー:', error);
-      setError(
-        axios.isAxiosError(error) && error.response?.data?.error
-          ? error.response.data.error
-          : '診断処理中にエラーが発生しました。もう一度お試しください。'
-      );
+      let errorMessage = '診断処理中にエラーが発生しました。もう一度お試しください。';
+      
+      if (axios.isAxiosError(error)) {
+        if (error.code === 'ECONNREFUSED') {
+          errorMessage = 'AI診断サーバーに接続できません。しばらく待ってから再試行してください。';
+        } else if (error.response?.data?.error) {
+          errorMessage = error.response.data.error;
+        } else if (error.message.includes('timeout')) {
+          errorMessage = '処理に時間がかかっています。もう一度お試しください。';
+        }
+      }
+      
+      setError(errorMessage);
       setStep('intro');
     } finally {
       setIsLoading(false);
@@ -119,37 +163,44 @@ export default function DiagnosisPage() {
                 <CardTitle>診断タイプを選択してください</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <button
-                  onClick={() => startDiagnosis('complete')}
-                  className="w-full p-6 bg-gradient-to-r from-primary to-secondary rounded-xl text-white hover-scale"
-                >
-                  <h3 className="text-xl font-bold mb-2">完全診断（おすすめ）</h3>
-                  <p>顔型とパーソナルカラーを同時に診断します</p>
-                  <div className="mt-4 text-sm opacity-90">
-                    所要時間: 約30秒
-                  </div>
-                </button>
+                <HoverSparkle>
+                  <PulseButton
+                    onClick={() => startDiagnosis('complete')}
+                    variant="primary"
+                    className="w-full p-6 text-left"
+                  >
+                    <h3 className="text-xl font-bold mb-2">完全診断（おすすめ）</h3>
+                    <p>顔型とパーソナルカラーを同時に診断します</p>
+                    <div className="mt-4 text-sm opacity-90">
+                      所要時間: 約30秒
+                    </div>
+                  </PulseButton>
+                </HoverSparkle>
 
                 <div className="grid md:grid-cols-2 gap-4">
-                  <button
-                    onClick={() => startDiagnosis('face')}
-                    className="p-6 bg-white border-2 border-primary rounded-xl hover:bg-primary-50 transition-colors"
-                  >
-                    <h3 className="text-lg font-bold mb-2">顔型診断のみ</h3>
-                    <p className="text-text-secondary text-sm">
-                      5つの顔型タイプを判定
-                    </p>
-                  </button>
+                  <HoverSparkle>
+                    <button
+                      onClick={() => startDiagnosis('face')}
+                      className="p-6 bg-white border-2 border-primary rounded-xl hover:bg-primary-50 transition-colors w-full"
+                    >
+                      <h3 className="text-lg font-bold mb-2">顔型診断のみ</h3>
+                      <p className="text-text-secondary text-sm">
+                        5つの顔型タイプを判定
+                      </p>
+                    </button>
+                  </HoverSparkle>
 
-                  <button
-                    onClick={() => startDiagnosis('color')}
-                    className="p-6 bg-white border-2 border-secondary rounded-xl hover:bg-secondary-50 transition-colors"
-                  >
-                    <h3 className="text-lg font-bold mb-2">カラー診断のみ</h3>
-                    <p className="text-text-secondary text-sm">
-                      4シーズンカラーを判定
-                    </p>
-                  </button>
+                  <HoverSparkle>
+                    <button
+                      onClick={() => startDiagnosis('color')}
+                      className="p-6 bg-white border-2 border-secondary rounded-xl hover:bg-secondary-50 transition-colors w-full"
+                    >
+                      <h3 className="text-lg font-bold mb-2">カラー診断のみ</h3>
+                      <p className="text-text-secondary text-sm">
+                        4シーズンカラーを判定
+                      </p>
+                    </button>
+                  </HoverSparkle>
                 </div>
               </CardContent>
             </Card>
@@ -195,45 +246,38 @@ export default function DiagnosisPage() {
 
         {/* 処理中画面 */}
         {step === 'processing' && (
-          <Card>
-            <CardContent className="py-16 text-center">
-              <LoadingSpinner size="lg" className="mb-6" />
-              <h2 className="text-xl font-semibold mb-2">{processingMessage}</h2>
-              <div className="space-y-2 text-text-secondary">
-                <p>AIが画像を分析しています...</p>
-                <p className="text-sm">処理には10〜30秒かかる場合があります</p>
-              </div>
-
-              {/* プログレスメッセージ */}
-              <div className="mt-8 space-y-2 text-sm text-text-secondary">
-                {diagnosisType === 'complete' || diagnosisType === 'face' ? (
-                  <p>✓ 顔の特徴点を検出中...</p>
-                ) : null}
-                {diagnosisType === 'complete' || diagnosisType === 'color' ? (
-                  <p>✓ 肌・髪・瞳の色を分析中...</p>
-                ) : null}
-              </div>
-            </CardContent>
-          </Card>
+          <div>
+            <MagicalLoading 
+              isLoading={true} 
+              message="AIが魔法をかけています...✨"
+            />
+          </div>
         )}
 
         {/* 結果画面 */}
         {step === 'result' && (
-          <Card>
-            <CardContent className="py-16 text-center">
-              <div className="text-6xl mb-4">✨</div>
-              <h2 className="text-2xl font-bold mb-4">診断が完了しました！</h2>
-              <p className="text-text-secondary mb-8">
-                あなたに最適な美容師をマッチングしました
-              </p>
-              <Button
-                size="lg"
-                onClick={viewResults}
-              >
-                診断結果を見る
-              </Button>
-            </CardContent>
-          </Card>
+          <div>
+            <SuccessConfetti 
+              isVisible={showConfetti} 
+              onComplete={() => setShowConfetti(false)}
+            />
+            <Card>
+              <CardContent className="py-16 text-center">
+                <div className="text-6xl mb-4">✨</div>
+                <h2 className="text-2xl font-bold mb-4">診断が完了しました！</h2>
+                <p className="text-text-secondary mb-8">
+                  あなたに最適な美容師をマッチングしました
+                </p>
+                <PulseButton
+                  onClick={viewResults}
+                  variant="primary"
+                  className="text-xl px-8 py-4"
+                >
+                  診断結果を見る ✨
+                </PulseButton>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
     </div>

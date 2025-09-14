@@ -1,17 +1,19 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { useAppStore } from '@/lib/useAppStore';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { PulseButton, SwipeableCard, HoverSparkle } from '@/components/ui/MicroInteractions';
 
 export default function DiagnosisResultPage() {
   const router = useRouter();
   const { currentUser, userData } = useAuth();
   const { currentDiagnosis, diagnosisImage } = useAppStore();
+  const [currentCard, setCurrentCard] = useState(0);
 
   // ログインチェック
   useEffect(() => {
@@ -131,119 +133,135 @@ export default function DiagnosisResultPage() {
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {/* 顔型診断結果 */}
           {faceInfo && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="text-2xl">{faceInfo.icon}</span>
-                  顔型診断結果
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <h3 className="text-2xl font-bold text-primary mb-2">
-                  {faceInfo.name}
-                </h3>
-                <p className="text-text-secondary mb-4">
-                  {faceInfo.description}
-                </p>
-                <div>
-                  <h4 className="font-semibold mb-2">おすすめヘアスタイル</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {faceInfo.recommendations.map((style, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 bg-primary-50 text-primary rounded-full text-sm"
-                      >
-                        {style}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <SwipeableCard
+              onSwipeLeft={() => setCurrentCard(1)}
+              onSwipeRight={() => setCurrentCard(1)}
+            >
+              <HoverSparkle>
+                <Card className="bg-gradient-to-br from-pink-50 to-purple-50 border-2 border-pink-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <span className="text-2xl">{faceInfo.icon}</span>
+                      顔型診断結果
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <h3 className="text-2xl font-bold text-primary mb-2">
+                      {faceInfo.name}
+                    </h3>
+                    <p className="text-text-secondary mb-4">
+                      {faceInfo.description}
+                    </p>
+                    <div>
+                      <h4 className="font-semibold mb-2">おすすめヘアスタイル</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {faceInfo.recommendations.map((style, index) => (
+                          <span
+                            key={index}
+                            className="px-3 py-1 bg-primary-50 text-primary rounded-full text-sm"
+                          >
+                            {style}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </HoverSparkle>
+            </SwipeableCard>
           )}
 
           {/* パーソナルカラー診断結果 */}
           {colorInfo && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="text-2xl">{colorInfo.icon}</span>
-                  パーソナルカラー診断結果
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <h3 className="text-2xl font-bold text-secondary mb-2">
-                  {colorInfo.name}
-                </h3>
-                <p className="text-text-secondary mb-4">
-                  {colorInfo.description}
-                </p>
-                <div>
-                  <h4 className="font-semibold mb-2">おすすめカラー</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {colorInfo.colors.map((color, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 bg-secondary-50 text-secondary rounded-full text-sm"
-                      >
-                        {color}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <SwipeableCard
+              onSwipeLeft={() => setCurrentCard(0)}
+              onSwipeRight={() => setCurrentCard(0)}
+            >
+              <HoverSparkle>
+                <Card className="bg-gradient-to-br from-blue-50 to-teal-50 border-2 border-blue-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <span className="text-2xl">{colorInfo.icon}</span>
+                      パーソナルカラー診断結果
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <h3 className="text-2xl font-bold text-secondary mb-2">
+                      {colorInfo.name}
+                    </h3>
+                    <p className="text-text-secondary mb-4">
+                      {colorInfo.description}
+                    </p>
+                    <div>
+                      <h4 className="font-semibold mb-2">おすすめカラー</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {colorInfo.colors.map((color, index) => (
+                          <span
+                            key={index}
+                            className="px-3 py-1 bg-secondary-50 text-secondary rounded-full text-sm"
+                          >
+                            {color}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </HoverSparkle>
+            </SwipeableCard>
           )}
         </div>
 
         {/* 総合アドバイス */}
         {diagnosis.recommendations && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>あなたへのアドバイス</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold mb-2">推奨スタイル</h4>
-                  <ul className="list-disc list-inside space-y-1 text-text-secondary">
-                    {diagnosis.recommendations.hairstyles?.map((style: string, index: number) => (
-                      <li key={index}>{style}</li>
-                    ))}
-                  </ul>
-                </div>
-                {diagnosis.recommendations.avoidStyles && diagnosis.recommendations.avoidStyles.length > 0 && (
+          <HoverSparkle>
+            <Card className="mb-8 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200">
+              <CardHeader>
+                <CardTitle className="text-center text-2xl">あなたへの特別アドバイス 💄</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold mb-2">避けたほうが良いスタイル</h4>
+                    <h4 className="font-semibold mb-2 text-lg">推奨スタイル ✨</h4>
                     <ul className="list-disc list-inside space-y-1 text-text-secondary">
-                      {diagnosis.recommendations.avoidStyles.map((style: string, index: number) => (
+                      {diagnosis.recommendations.hairstyles?.map((style: string, index: number) => (
                         <li key={index}>{style}</li>
                       ))}
                     </ul>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  {diagnosis.recommendations.avoidStyles && diagnosis.recommendations.avoidStyles.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold mb-2 text-lg">避けたほうが良いスタイル ⚠️</h4>
+                      <ul className="list-disc list-inside space-y-1 text-text-secondary">
+                        {diagnosis.recommendations.avoidStyles.map((style: string, index: number) => (
+                          <li key={index}>{style}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </HoverSparkle>
         )}
 
         {/* CTAボタン */}
         <div className="space-y-4">
-          <Button
-            size="lg"
-            fullWidth
+          <PulseButton
             onClick={() => router.push('/stylists')}
+            variant="primary"
+            className="w-full text-lg px-8 py-4"
           >
-            あなたに合う美容師を探す
-          </Button>
+            あなたに合う美容師を探す ✨
+          </PulseButton>
           
-          <Button
-            variant="outline"
-            fullWidth
+          <PulseButton
             onClick={() => router.push('/diagnosis')}
+            variant="secondary"
+            className="w-full text-lg px-8 py-4"
           >
-            もう一度診断する
-          </Button>
+            もう一度診断する 🔄
+          </PulseButton>
 
           <div className="text-center">
             <Link
