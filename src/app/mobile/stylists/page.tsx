@@ -21,7 +21,7 @@ import {
   User
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 // Mock data for stylists
 const mockStylists = [

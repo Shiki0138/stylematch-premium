@@ -5,10 +5,13 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { MatchingService } from '@/lib/services/matching.service';
 import { Stylist } from '@/types/models';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { formatPrice } from '@/lib/utils';
+
+// 'use client'では generateStaticParams は使用不可
+// 動的ルートのため静的エクスポートではスキップされる
 
 export default function StylistDetailPage() {
   const params = useParams();

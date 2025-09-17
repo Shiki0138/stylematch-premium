@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { GradientBg } from './GradientBg';
-import { SparkleButton } from './SparkleButton';
+import { Button } from '../ui/button';
+import { GradientBg } from '../ui/gradient-bg';
 import { ChevronLeft, ChevronRight, Camera, Users, Sparkles, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -18,7 +17,7 @@ const slides = [
     title: 'AI顔型診断',
     subtitle: 'あなたの顔型を科学的に分析',
     description: '最新のAI技術であなたの顔型を正確に診断。日本人女性に特化した分析で、より精密な結果をお届けします。',
-    color: 'rose' as const
+    color: 'rose'
   },
   {
     id: 2,
@@ -26,7 +25,7 @@ const slides = [
     title: '最適な美容師マッチング',
     subtitle: '相性の良い美容師を見つける',
     description: '顔型とパーソナルカラー分析に基づいて、あなたにぴったりの美容師をマッチング。失敗しないサロン選びを実現します。',
-    color: 'lavender' as const
+    color: 'lavender'
   },
   {
     id: 3,
@@ -34,7 +33,7 @@ const slides = [
     title: 'パーソナライズされた提案',
     subtitle: 'あなただけの美容体験',
     description: '診断結果に基づいたヘアスタイル提案と、専門知識を持つ美容師による個別カウンセリング。',
-    color: 'coral' as const
+    color: 'coral'
   },
   {
     id: 4,
@@ -42,9 +41,9 @@ const slides = [
     title: '簡単予約システム',
     subtitle: 'スムーズな予約体験',
     description: 'リアルタイム空き状況確認と3ステップで完了する簡単予約。あなたの理想の美容体験が始まります。',
-    color: 'soft' as const
+    color: 'soft'
   }
-];
+] as const;
 
 export function Onboarding({ onComplete }: OnboardingProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -69,11 +68,11 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     <GradientBg variant={currentSlideData.color} className="min-h-screen relative overflow-hidden">
       <div className="flex flex-col min-h-screen">
         {/* Header with skip button */}
-        <div className="flex justify-between items-center p-6 pt-12 safe-top">
+        <div className="flex justify-between items-center p-6 pt-12">
           {currentSlide > 0 && (
             <Button 
               variant="ghost" 
-              size="icon" 
+              size="sm" 
               onClick={handlePrev}
               className="p-2"
             >
@@ -83,6 +82,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           <div className="flex-1" />
           <Button 
             variant="ghost" 
+            size="sm" 
             onClick={onComplete}
             className="text-gray-500 hover:text-gray-700"
           >
@@ -145,31 +145,30 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         </div>
 
         {/* Bottom controls */}
-        <div className="p-8 space-y-6 safe-bottom">
+        <div className="p-8 space-y-6">
           {/* Progress dots */}
           <div className="flex justify-center space-x-2">
             {slides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
-                className={`h-2 rounded-full transition-all duration-300 ${
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
                   index === currentSlide 
                     ? 'bg-pink-500 w-6' 
-                    : 'bg-gray-300 w-2'
+                    : 'bg-gray-300'
                 }`}
               />
             ))}
           </div>
 
           {/* Next button */}
-          <SparkleButton
+          <Button
             onClick={handleNext}
-            className="w-full py-4 text-lg"
-            variant="primary"
-            size="lg"
+            className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white py-4 rounded-xl shadow-lg"
           >
             {currentSlide === slides.length - 1 ? '始める' : '次へ'}
-          </SparkleButton>
+            <ChevronRight className="w-4 h-4 ml-2" />
+          </Button>
         </div>
       </div>
     </GradientBg>

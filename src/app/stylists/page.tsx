@@ -5,8 +5,8 @@ import { useAuth } from '@/lib/firebase/auth-context';
 import { useAppStore } from '@/lib/useAppStore';
 import { MatchingService } from '@/lib/services/matching.service';
 import { StylistCard } from '@/components/stylists/StylistCard';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { Button } from '@/components/ui/Button';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { Button } from '@/components/ui/button';
 import { PulseButton, MagicalLoading, HoverSparkle } from '@/components/ui/MicroInteractions';
 import { Stylist, MatchingResult } from '@/types/models';
 

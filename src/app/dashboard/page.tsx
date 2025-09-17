@@ -7,9 +7,9 @@ import { useAuth } from '@/lib/firebase/auth-context';
 import { BookingService } from '@/lib/services/booking.service';
 import { MatchingService } from '@/lib/services/matching.service';
 import { Booking, Stylist } from '@/types/models';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { formatDate, formatPrice } from '@/lib/utils';
 
 export default function DashboardPage() {

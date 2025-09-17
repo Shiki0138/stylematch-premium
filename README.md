@@ -35,6 +35,27 @@ AIを活用した顔型診断とパーソナルカラー診断により、ユー
 - **画像処理**: OpenCV + Pillow
 - **インフラ**: Firebase (Firestore, Storage, Functions)
 
+## 📊 システムフロー（Mermaid）
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Web as StyleMatch (Next.js)
+    participant API as AI Diagnosis API
+    participant Store as Firebase/Firestore
+
+    User->>Web: 「AI美容診断」開始
+    Web->>Web: カメラで撮影 / 画像アップロード
+    Web->>API: 解析リクエスト (Base64画像, ユーザーID)
+    API-->>Web: 診断結果 (顔型/カラー/推奨スタイル)
+    Web->>Store: 結果・画像を保存
+    Web-->>User: 診断結果・美容師マッチングを表示
+    User->>Web: 美容師予約リクエスト
+    Web->>Store: 予約枠を確認し保存
+    Store-->>Web: 予約確定
+    Web-->>User: 予約完了画面
+```
+
 ## 📦 セットアップ
 
 ### 1. リポジトリのクローン

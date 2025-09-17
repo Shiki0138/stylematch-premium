@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { useAppStore } from '@/lib/useAppStore';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PulseButton, SwipeableCard, HoverSparkle } from '@/components/ui/MicroInteractions';
+import { Sparkles } from 'lucide-react';
 
 export default function DiagnosisResultPage() {
   const router = useRouter();
@@ -106,12 +107,12 @@ export default function DiagnosisResultPage() {
   const colorInfo = diagnosis.personalColor ? personalColorInfo[diagnosis.personalColor] : null;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-luxury-pearl py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* ヘッダー */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">診断結果</h1>
-          <p className="text-text-secondary">
+          <h1 className="text-3xl font-bold mb-2 text-luxury-navy">診断結果</h1>
+          <p className="text-gray-600">
             あなたの魅力を最大限に引き出すスタイルをご提案します
           </p>
         </div>
@@ -138,7 +139,7 @@ export default function DiagnosisResultPage() {
               onSwipeRight={() => setCurrentCard(1)}
             >
               <HoverSparkle>
-                <Card className="bg-gradient-to-br from-pink-50 to-purple-50 border-2 border-pink-200">
+                <Card className="bg-gradient-to-br from-luxury-pearl to-white border-2 border-luxury-champagne">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <span className="text-2xl">{faceInfo.icon}</span>
@@ -146,10 +147,10 @@ export default function DiagnosisResultPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <h3 className="text-2xl font-bold text-primary mb-2">
+                    <h3 className="text-2xl font-bold text-luxury-champagne mb-2">
                       {faceInfo.name}
                     </h3>
-                    <p className="text-text-secondary mb-4">
+                    <p className="text-gray-600 mb-4">
                       {faceInfo.description}
                     </p>
                     <div>
@@ -158,7 +159,7 @@ export default function DiagnosisResultPage() {
                         {faceInfo.recommendations.map((style, index) => (
                           <span
                             key={index}
-                            className="px-3 py-1 bg-primary-50 text-primary rounded-full text-sm"
+                            className="px-3 py-1 bg-luxury-champagne/10 text-luxury-navy rounded-full text-sm"
                           >
                             {style}
                           </span>
@@ -178,7 +179,7 @@ export default function DiagnosisResultPage() {
               onSwipeRight={() => setCurrentCard(0)}
             >
               <HoverSparkle>
-                <Card className="bg-gradient-to-br from-blue-50 to-teal-50 border-2 border-blue-200">
+                <Card className="bg-gradient-to-br from-luxury-pearl to-white border-2 border-luxury-navy">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <span className="text-2xl">{colorInfo.icon}</span>
@@ -186,10 +187,10 @@ export default function DiagnosisResultPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <h3 className="text-2xl font-bold text-secondary mb-2">
+                    <h3 className="text-2xl font-bold text-luxury-navy mb-2">
                       {colorInfo.name}
                     </h3>
-                    <p className="text-text-secondary mb-4">
+                    <p className="text-gray-600 mb-4">
                       {colorInfo.description}
                     </p>
                     <div>
@@ -198,7 +199,7 @@ export default function DiagnosisResultPage() {
                         {colorInfo.colors.map((color, index) => (
                           <span
                             key={index}
-                            className="px-3 py-1 bg-secondary-50 text-secondary rounded-full text-sm"
+                            className="px-3 py-1 bg-luxury-navy/10 text-luxury-navy rounded-full text-sm"
                           >
                             {color}
                           </span>
@@ -215,7 +216,7 @@ export default function DiagnosisResultPage() {
         {/* 総合アドバイス */}
         {diagnosis.recommendations && (
           <HoverSparkle>
-            <Card className="mb-8 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200">
+            <Card className="mb-8 bg-gradient-to-br from-luxury-champagne/10 to-luxury-rose/10 border-2 border-luxury-champagne">
               <CardHeader>
                 <CardTitle className="text-center text-2xl">あなたへの特別アドバイス 💄</CardTitle>
               </CardHeader>
@@ -223,7 +224,7 @@ export default function DiagnosisResultPage() {
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-semibold mb-2 text-lg">推奨スタイル ✨</h4>
-                    <ul className="list-disc list-inside space-y-1 text-text-secondary">
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
                       {diagnosis.recommendations.hairstyles?.map((style: string, index: number) => (
                         <li key={index}>{style}</li>
                       ))}
@@ -232,7 +233,7 @@ export default function DiagnosisResultPage() {
                   {diagnosis.recommendations.avoidStyles && diagnosis.recommendations.avoidStyles.length > 0 && (
                     <div>
                       <h4 className="font-semibold mb-2 text-lg">避けたほうが良いスタイル ⚠️</h4>
-                      <ul className="list-disc list-inside space-y-1 text-text-secondary">
+                      <ul className="list-disc list-inside space-y-1 text-gray-600">
                         {diagnosis.recommendations.avoidStyles.map((style: string, index: number) => (
                           <li key={index}>{style}</li>
                         ))}
@@ -247,12 +248,37 @@ export default function DiagnosisResultPage() {
 
         {/* CTAボタン */}
         <div className="space-y-4">
+          {/* 詳細分析への誘導 */}
+          <HoverSparkle>
+            <Card className="bg-gradient-to-r from-luxury-champagne/20 to-luxury-rose/20">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex-1">
+                    <h3 className="font-semibold mb-1">さらに詳しく分析</h3>
+                    <p className="text-sm text-gray-600">
+                      25種類の詳細分類でより精密な分析が可能です
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => router.push('/diagnosis/advanced')}
+                    className="whitespace-nowrap"
+                  >
+                    <Sparkles className="w-4 h-4 mr-1" />
+                    詳細分析
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </HoverSparkle>
+
           <PulseButton
-            onClick={() => router.push('/stylists')}
+            onClick={() => router.push('/hairstyle-simulation')}
             variant="primary"
             className="w-full text-lg px-8 py-4"
           >
-            あなたに合う美容師を探す ✨
+            AIで似合う髪型をシミュレーション 💇‍♀️
           </PulseButton>
           
           <PulseButton
@@ -266,7 +292,7 @@ export default function DiagnosisResultPage() {
           <div className="text-center">
             <Link
               href="/dashboard"
-              className="text-primary hover:underline text-sm"
+              className="text-luxury-champagne hover:text-luxury-navy hover:underline text-sm transition-colors"
             >
               ダッシュボードに戻る
             </Link>
@@ -275,13 +301,13 @@ export default function DiagnosisResultPage() {
 
         {/* シェアボタン */}
         <div className="mt-8 text-center">
-          <p className="text-sm text-text-secondary mb-2">診断結果をシェア</p>
+          <p className="text-sm text-gray-600 mb-2">診断結果をシェア</p>
           <div className="flex justify-center gap-4">
             <button
               onClick={() => {
                 // TODO: Twitterシェア機能
               }}
-              className="p-2 bg-blue-400 text-white rounded-full hover-scale"
+              className="p-2 bg-luxury-navy text-white rounded-full hover-scale hover:bg-luxury-navy/90 transition-colors"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z" />
@@ -291,7 +317,7 @@ export default function DiagnosisResultPage() {
               onClick={() => {
                 // TODO: LINEシェア機能
               }}
-              className="p-2 bg-green-500 text-white rounded-full hover-scale"
+              className="p-2 bg-luxury-champagne text-white rounded-full hover-scale hover:bg-luxury-champagne/90 transition-colors"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />

@@ -3,6 +3,7 @@ import { Inter, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/firebase/auth-context";
 import { Providers } from "@/lib/providers";
+import Script from 'next/script';
 
 const inter = Inter({ subsets: ["latin"] });
 const notoSansJP = Noto_Sans_JP({
@@ -51,12 +52,51 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className={notoSansJP.className}>
-      <body className="bg-background text-text-primary antialiased">
+      <body className="bg-background text-foreground antialiased">
         <Providers>
           <AuthProvider>
             {children}
           </AuthProvider>
         </Providers>
+        
+        {/* Sentry エラーレポート初期化 */}
+        <Script
+          id="sentry-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined' && window.Sentry) {
+                // Sentryは既に初期化されています
+                console.log('Sentry initialized');
+              }
+            `,
+          }}
+        />
+        
+        {/* Web Vitals 監視 */}
+        <Script
+          id="web-vitals"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Web Vitalsのレポート関数を定義
+              window.reportWebVitals = function(metric) {
+                if (window.Sentry) {
+                  window.Sentry.captureMessage('Web Vital: ' + metric.name, {
+                    level: 'info',
+                    tags: {
+                      web_vital: metric.name,
+                    },
+                    extra: {
+                      value: metric.value.toFixed(2),
+                      id: metric.id,
+                    },
+                  });
+                }
+              };
+            `,
+          }}
+        />
       </body>
     </html>
   );

@@ -1,0 +1,174 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, Sparkles, Camera, Download, Share2, Palette, Scissors } from 'lucide-react';
+import Image from 'next/image';
+import { hairstyleSimulationService, HairstyleOptions } from '@/lib/services/hairstyle-simulation.service';
+import { useAuthStore } from '@/lib/store/auth-store';
+import { toast } from 'react-hot-toast';
+
+export default function HairstyleSimulation() {
+  const router = useRouter();
+  const [selectedStyle, setSelectedStyle] = useState('elegant');
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [simulationResults, setSimulationResults] = useState<string[]>([]);
+
+  // デモ用のモックデータ
+  const styleOptions = [
+    { id: 'elegant', name: 'エレガント', description: '上品で洗練された印象' },
+    { id: 'casual', name: 'カジュアル', description: '自然体で親しみやすい' },
+    { id: 'modern', name: 'モダン', description: '都会的でスタイリッシュ' },
+    { id: 'cute', name: 'キュート', description: '可愛らしく若々しい' },
+  ];
+
+  const handleSimulation = async () => {
+    setIsSimulating(true);
+    
+    // デモ用：2秒後にダミー結果を表示
+    setTimeout(() => {
+      setSimulationResults([
+        '/api/placeholder/400/600',
+        '/api/placeholder/400/600',
+        '/api/placeholder/400/600',
+        '/api/placeholder/400/600',
+      ]);
+      setIsSimulating(false);
+    }, 2000);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
+      {/* ヘッダー */}
+      <div className="bg-white border-b sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <h1 className="text-xl font-bold">AI髪型シミュレーション</h1>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto p-4 space-y-6">
+        {/* 説明カード */}
+        <Card className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-6 h-6" />
+              診断結果に基づくAI髪型提案
+            </CardTitle>
+            <CardDescription className="text-purple-100">
+              あなたの顔型に最適な髪型をAIがシミュレーションします
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        {/* スタイル選択 */}
+        <Card>
+          <CardHeader>
+            <CardTitle>スタイルを選択</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-3">
+              {styleOptions.map((style) => (
+                <button
+                  key={style.id}
+                  onClick={() => setSelectedStyle(style.id)}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    selectedStyle === style.id
+                      ? 'border-purple-500 bg-purple-50'
+                      : 'border-gray-200 hover:border-purple-300'
+                  }`}
+                >
+                  <h3 className="font-semibold">{style.name}</h3>
+                  <p className="text-sm text-gray-600">{style.description}</p>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* シミュレーション実行ボタン */}
+        <Button
+          onClick={handleSimulation}
+          disabled={isSimulating}
+          className="w-full h-14 text-lg"
+        >
+          {isSimulating ? (
+            <>
+              <Sparkles className="w-5 h-5 mr-2 animate-spin" />
+              シミュレーション中...
+            </>
+          ) : (
+            <>
+              <Camera className="w-5 h-5 mr-2" />
+              シミュレーションを開始
+            </>
+          )}
+        </Button>
+
+        {/* 結果表示 */}
+        {simulationResults.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>シミュレーション結果</CardTitle>
+              <CardDescription>
+                AIが提案するあなたに似合う髪型です
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="style1" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="style1">スタイル1</TabsTrigger>
+                  <TabsTrigger value="style2">スタイル2</TabsTrigger>
+                  <TabsTrigger value="style3">スタイル3</TabsTrigger>
+                  <TabsTrigger value="style4">スタイル4</TabsTrigger>
+                </TabsList>
+                
+                {simulationResults.map((result, index) => (
+                  <TabsContent key={index} value={`style${index + 1}`}>
+                    <div className="space-y-4">
+                      <div className="relative aspect-[3/4] bg-gray-100 rounded-lg overflow-hidden">
+                        {/* 実際の実装では画像URLを使用 */}
+                        <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                          シミュレーション画像
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button variant="outline" className="flex-1">
+                          <Download className="w-4 h-4 mr-2" />
+                          保存
+                        </Button>
+                        <Button variant="outline" className="flex-1">
+                          <Share2 className="w-4 h-4 mr-2" />
+                          共有
+                        </Button>
+                      </div>
+                    </div>
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* 注意事項 */}
+        <Card className="bg-yellow-50 border-yellow-200">
+          <CardContent className="pt-6">
+            <p className="text-sm text-yellow-800">
+              ※ このシミュレーションは参考イメージです。実際の仕上がりは美容師の技術や髪質により異なります。
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

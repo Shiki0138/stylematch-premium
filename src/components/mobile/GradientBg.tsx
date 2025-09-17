@@ -4,15 +4,16 @@ import { cn } from '@/lib/utils';
 interface GradientBgProps {
   children?: ReactNode;
   className?: string;
-  variant?: 'rose' | 'lavender' | 'coral' | 'soft';
+  variant?: 'champagne' | 'pearl' | 'taupe' | 'sage' | 'navy';
 }
 
-export function GradientBg({ children, className, variant = 'rose' }: GradientBgProps) {
+export function GradientBg({ children, className, variant = 'champagne' }: GradientBgProps) {
   const gradients = {
-    rose: 'bg-gradient-to-br from-pink-100 via-rose-50 to-pink-200',
-    lavender: 'bg-gradient-to-br from-purple-100 via-violet-50 to-purple-200',
-    coral: 'bg-gradient-to-br from-orange-100 via-red-50 to-orange-200',
-    soft: 'bg-gradient-to-br from-gray-50 via-white to-gray-100'
+    champagne: 'bg-gradient-to-br from-luxury-pearl via-luxury-ivory to-luxury-champagne/20',
+    pearl: 'bg-gradient-to-br from-luxury-ivory via-luxury-pearl to-luxury-warm-gray/10',
+    taupe: 'bg-gradient-to-br from-luxury-pearl via-luxury-taupe/20 to-luxury-warm-gray/20',
+    sage: 'bg-gradient-to-br from-luxury-pearl via-luxury-sage/10 to-luxury-ivory',
+    navy: 'bg-gradient-to-br from-luxury-navy via-luxury-charcoal to-luxury-navy/90'
   };
 
   return (

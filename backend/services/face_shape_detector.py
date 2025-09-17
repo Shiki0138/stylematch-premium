@@ -305,7 +305,7 @@ class FaceShapeDetector:
                     'ストレート・カール両方似合う'
                 ],
                 'avoid_styles': ['特になし'],
-                'celebrity_examples': ['石原さとみさん', '新垣結衣さん'],
+                'characteristics': ['理想的な縦横比', 'なだらかな曲線', 'バランスが良い'],
                 'points': ['理想的なバランスなので自由にチャレンジ']
             },
             'maru': {
@@ -316,7 +316,7 @@ class FaceShapeDetector:
                     'レイヤーカット'
                 ],
                 'avoid_styles': ['ぱっつん前髪', 'ボブ（顎ライン）'],
-                'celebrity_examples': ['有村架純さん', '森七菜さん'],
+                'characteristics': ['可愛らしい印象', '頬がふっくら', '若々しい'],
                 'points': ['縦のラインを意識して小顔効果を狙いましょう']
             },
             'shikaku': {
@@ -327,7 +327,7 @@ class FaceShapeDetector:
                     'レイヤーで動きを出す'
                 ],
                 'avoid_styles': ['ストレートボブ', 'ワンレングス'],
-                'celebrity_examples': ['綾瀬はるかさん', '天海祐希さん'],
+                'characteristics': ['エラが張っている', '意志が強い印象', 'しっかりした骨格'],
                 'points': ['柔らかい質感で女性らしさをプラス']
             },
             'heart': {
@@ -338,7 +338,7 @@ class FaceShapeDetector:
                     '顎周りにボリューム'
                 ],
                 'avoid_styles': ['トップにボリューム', 'かき上げ前髪'],
-                'celebrity_examples': ['広瀬すずさん', '本田翼さん'],
+                'characteristics': ['額が広い', '顎が細い', '知的で上品'],
                 'points': ['下半分にボリュームでバランス調整']
             },
             'omochou': {
@@ -349,7 +349,7 @@ class FaceShapeDetector:
                     'ひし形シルエット'
                 ],
                 'avoid_styles': ['センター分け', 'ロングストレート'],
-                'celebrity_examples': ['水川あさみさん', '菅野美穂さん'],
+                'characteristics': ['縦に長い', '大人っぽい', 'すらりとした印象'],
                 'points': ['横幅を意識して面長をカバー']
             }
         }

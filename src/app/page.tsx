@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { PulseButton, HoverSparkle } from '@/components/ui/MicroInteractions';
 
@@ -29,7 +29,7 @@ export default function Home() {
       subtitle: '世界最速の美容分析',
       description: '1枚の写真から68ポイント解析。日本人女性に特化した最先端AI技術',
       icon: '⚡',
-      gradient: 'from-pink-500 to-purple-600',
+      gradient: 'from-luxury-champagne to-luxury-rose-gold',
       stats: '精度96.8%'
     },
     {
@@ -37,7 +37,7 @@ export default function Home() {
       subtitle: '従来の4倍の精密診断',
       description: '季節変化・肌質まで考慮した日本初の超精密カラー分析システム',
       icon: '🌈',
-      gradient: 'from-blue-500 to-teal-500',
+      gradient: 'from-luxury-sage to-luxury-pearl',
       stats: '16パターン対応'
     },
     {
@@ -45,7 +45,7 @@ export default function Home() {
       subtitle: 'リアルタイム変身',
       description: 'スマホで即座にヘアスタイル試着。SNS映えする最適角度も提案',
       icon: '✨',
-      gradient: 'from-yellow-500 to-orange-500',
+      gradient: 'from-luxury-champagne to-luxury-taupe',
       stats: '200+スタイル'
     },
     {
@@ -53,7 +53,7 @@ export default function Home() {
       subtitle: '99.2%満足度の出会い',
       description: '技術・性格・美意識まで分析した科学的マッチングシステム',
       icon: '💎',
-      gradient: 'from-emerald-500 to-cyan-500',
+      gradient: 'from-luxury-navy to-luxury-sage',
       stats: '満足度99.2%'
     },
   ];
@@ -130,7 +130,7 @@ export default function Home() {
   return (
     <div className="min-h-screen overflow-hidden">
       {/* 革命的ヒーローセクション */}
-      <section className="relative min-h-screen bg-gradient-to-br from-purple-900 via-pink-800 to-rose-700">
+      <section className="relative min-h-screen bg-gradient-to-br from-luxury-navy via-luxury-charcoal to-luxury-rose-gold">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="absolute inset-0 bg-[url('/hero-pattern.svg')] opacity-10"></div>
         
@@ -143,13 +143,13 @@ export default function Home() {
             </div>
             
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-6">
-              <span className="block bg-gradient-to-r from-white via-pink-200 to-purple-200 bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-white via-luxury-pearl to-luxury-champagne bg-clip-text text-transparent">
                 あなたの
               </span>
-              <span className="block bg-gradient-to-r from-pink-300 via-purple-300 to-blue-300 bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-luxury-champagne via-luxury-rose-gold to-luxury-taupe bg-clip-text text-transparent">
                 美しさを
               </span>
-              <span className="block bg-gradient-to-r from-blue-300 via-teal-300 to-green-300 bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-luxury-sage via-luxury-pearl to-luxury-champagne bg-clip-text text-transparent">
                 科学する
               </span>
             </h1>
@@ -175,7 +175,7 @@ export default function Home() {
                 variant="outline"
                 size="lg"
                 onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                className="text-xl px-8 py-6 rounded-full border-2 border-white text-white hover:bg-white hover:text-purple-900 transition-all duration-300"
+                className="text-xl px-8 py-6 rounded-full border-2 border-white text-white hover:bg-white hover:text-luxury-navy transition-all duration-300"
               >
                 機能を見る 👀
               </Button>
@@ -200,16 +200,16 @@ export default function Home() {
         </div>
 
         {/* 浮遊するアニメーション要素 */}
-        <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full opacity-20 animate-bounce"></div>
-        <div className="absolute top-40 right-16 w-16 h-16 bg-gradient-to-r from-blue-400 to-teal-500 rounded-full opacity-30 animate-pulse"></div>
-        <div className="absolute bottom-32 left-20 w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full opacity-25 animate-bounce delay-1000"></div>
+        <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-to-r from-luxury-champagne to-luxury-rose-gold rounded-full opacity-20 animate-bounce"></div>
+        <div className="absolute top-40 right-16 w-16 h-16 bg-gradient-to-r from-luxury-sage to-luxury-pearl rounded-full opacity-30 animate-pulse"></div>
+        <div className="absolute bottom-32 left-20 w-12 h-12 bg-gradient-to-r from-luxury-champagne to-luxury-taupe rounded-full opacity-25 animate-bounce delay-1000"></div>
       </section>
 
       {/* 革新的機能セクション */}
       <section id="features" className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-luxury-navy to-luxury-rose-gold bg-clip-text text-transparent">
               なぜ98%の女性が感動するのか
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -241,11 +241,11 @@ export default function Home() {
       </section>
 
       {/* 感動の使い方セクション */}
-      <section className="py-24 bg-gradient-to-br from-gray-50 to-purple-50">
+      <section className="py-24 bg-gradient-to-br from-luxury-pearl to-luxury-ivory">
         <div className="container mx-auto px-4">
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              たった<span className="text-purple-600">5分</span>で人生が変わる
+              たった<span className="text-luxury-navy">5分</span>で人生が変わる
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               美容のプロが監修した科学的診断フローで、確実にあなたの魅力を引き出します
@@ -257,7 +257,7 @@ export default function Home() {
               {steps.map((step, index) => (
                 <div key={index} className="text-center group">
                   <div className="relative mb-8">
-                    <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full flex items-center justify-center font-bold text-2xl mx-auto mb-4 transform group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <div className="w-20 h-20 bg-gradient-to-r from-luxury-champagne to-luxury-rose-gold text-white rounded-full flex items-center justify-center font-bold text-2xl mx-auto mb-4 transform group-hover:scale-110 transition-transform duration-300 shadow-lg">
                       {step.icon}
                     </div>
                     <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 text-black rounded-full flex items-center justify-center text-sm font-bold">
@@ -265,7 +265,7 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="bg-white rounded-2xl p-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
-                    <div className="text-sm font-semibold text-purple-600 mb-2">{step.time}</div>
+                    <div className="text-sm font-semibold text-luxury-navy mb-2">{step.time}</div>
                     <h3 className="text-lg font-bold mb-3">{step.title}</h3>
                     <p className="text-gray-600 text-sm leading-relaxed">{step.description}</p>
                   </div>
@@ -281,7 +281,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              実際の<span className="text-pink-600">変身ストーリー</span>
+              実際の<span className="text-luxury-rose-gold">変身ストーリー</span>
             </h2>
             <p className="text-xl text-gray-600">
               20〜30代女性のリアルな声をお聞きください
@@ -289,11 +289,11 @@ export default function Home() {
           </div>
           
           <div className="max-w-4xl mx-auto">
-            <Card className="overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-pink-50 to-purple-50">
+            <Card className="overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-luxury-pearl to-luxury-ivory">
               <CardContent className="p-8 md:p-12">
                 <div className="flex flex-col md:flex-row items-center gap-8">
                   <div className="flex-shrink-0">
-                    <div className="w-24 h-24 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-4xl">
+                    <div className="w-24 h-24 bg-gradient-to-r from-luxury-champagne to-luxury-rose-gold rounded-full flex items-center justify-center text-4xl">
                       {testimonials[currentTestimonial].avatar}
                     </div>
                   </div>
@@ -335,7 +335,7 @@ export default function Home() {
                   onClick={() => setCurrentTestimonial(index)}
                   className={`w-3 h-3 rounded-full transition-all duration-300 ${
                     index === currentTestimonial 
-                      ? 'bg-purple-500 w-8' 
+                      ? 'bg-luxury-champagne w-8' 
                       : 'bg-gray-300 hover:bg-gray-400'
                   }`}
                 />
@@ -346,13 +346,13 @@ export default function Home() {
       </section>
 
       {/* 最終CTA（感動的） */}
-      <section className="py-24 bg-gradient-to-r from-purple-900 via-pink-800 to-rose-700 text-white relative overflow-hidden">
+      <section className="py-24 bg-gradient-to-r from-luxury-navy via-luxury-charcoal to-luxury-rose-gold text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="relative z-10 container mx-auto px-4 text-center">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
             あなたの美しさの
             <br />
-            <span className="bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-luxury-champagne to-luxury-pearl bg-clip-text text-transparent">
               新しい章
             </span>
             が始まる
@@ -379,8 +379,8 @@ export default function Home() {
         </div>
 
         {/* アニメーション要素 */}
-        <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-r from-pink-400/30 to-purple-500/30 rounded-full animate-ping"></div>
-        <div className="absolute bottom-10 right-10 w-24 h-24 bg-gradient-to-r from-yellow-400/30 to-orange-500/30 rounded-full animate-pulse"></div>
+        <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-r from-luxury-champagne/30 to-luxury-rose-gold/30 rounded-full animate-ping"></div>
+        <div className="absolute bottom-10 right-10 w-24 h-24 bg-gradient-to-r from-luxury-champagne/30 to-luxury-taupe/30 rounded-full animate-pulse"></div>
       </section>
 
       {/* プレミアムフッター */}
@@ -388,17 +388,17 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8 mb-12">
             <div className="col-span-2">
-              <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
+              <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-luxury-champagne to-luxury-rose-gold bg-clip-text text-transparent">
                 StyleMatch Premium
               </h3>
               <p className="text-gray-400 mb-6 max-w-md">
                 AI美容診断で理想の美容師と出会う、日本初の次世代美容プラットフォーム
               </p>
               <div className="flex space-x-4">
-                <a href="#" className="text-2xl hover:text-pink-400 transition-colors">📱</a>
-                <a href="#" className="text-2xl hover:text-pink-400 transition-colors">🐦</a>
-                <a href="#" className="text-2xl hover:text-pink-400 transition-colors">📸</a>
-                <a href="#" className="text-2xl hover:text-pink-400 transition-colors">📺</a>
+                <a href="#" className="text-2xl hover:text-luxury-champagne transition-colors">📱</a>
+                <a href="#" className="text-2xl hover:text-luxury-champagne transition-colors">🐦</a>
+                <a href="#" className="text-2xl hover:text-luxury-champagne transition-colors">📸</a>
+                <a href="#" className="text-2xl hover:text-luxury-champagne transition-colors">📺</a>
               </div>
             </div>
             <div>

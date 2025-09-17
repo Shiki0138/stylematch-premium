@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MobileContainer } from '@/components/mobile/MobileContainer';
-import { SplashScreen } from '@/components/mobile/SplashScreen';
-import { Onboarding } from '@/components/mobile/Onboarding';
-import { GradientBg } from '@/components/mobile/GradientBg';
-import { SparkleButton } from '@/components/mobile/SparkleButton';
+import { MobileContainer } from '@/components/ui/mobile-container';
+import { SplashScreen } from '@/components/mobile/splash-screen';
+import { Onboarding } from '@/components/mobile/onboarding';
+import { GradientBg } from '@/components/ui/gradient-bg';
+import { SparkleButton } from '@/components/ui/sparkle-button';
 import { useRouter } from 'next/navigation';
 import { Camera, Users, Calendar, User } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 export default function MobileAppPage() {
   const [showSplash, setShowSplash] = useState(true);
@@ -69,74 +71,109 @@ export default function MobileAppPage() {
 
   return (
     <MobileContainer>
-      <GradientBg variant="soft" className="min-h-screen flex flex-col">
-        {/* Scrollable content area */}
-        <div className="flex-1 overflow-y-auto pb-32">
-          {/* Header with safe area */}
-          <div className="pt-safe pb-6 px-6">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-center"
-          >
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              こんにちは！
-            </h1>
-            <p className="text-base text-gray-600">
-              今日はどんなスタイルにしますか？
-            </p>
-          </motion.div>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-pink-500 to-rose-500 px-4 pt-safe pb-6 text-white">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-xl font-semibold">こんにちは！</h1>
+              <p className="text-pink-100 text-sm">今日も素敵な一日を</p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors">
+                <User className="w-5 h-5" />
+              </button>
+            </div>
           </div>
+        </div>
 
-          {/* Main CTA */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="px-6 mb-8"
-        >
-          <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl p-6 shadow-xl text-white">
-            <h2 className="text-2xl font-bold mb-2">AI診断でスタイル発見</h2>
-            <p className="text-base opacity-90 mb-4">
-              わずか30秒で、あなたの顔型を分析
-            </p>
-            <SparkleButton
-              onClick={() => router.push('/mobile/diagnosis')}
-              className="w-full"
-              variant="primary"
+        {/* Main content */}
+        <div className="flex-1 overflow-y-auto pb-24">
+          <div className="px-4 py-6 space-y-6">
+            {/* Main CTA */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
             >
-              診断を始める
-            </SparkleButton>
-          </div>
-          </motion.div>
-
-          {/* Feature Grid */}
-          <div className="px-6 pb-8">
-          <div className="grid grid-cols-2 gap-4">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <motion.button
-                  key={feature.title}
-                  onClick={() => router.push(feature.path)}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
-                  className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 text-left touch-feedback active:scale-95"
-                >
-                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${feature.color} flex items-center justify-center mb-3`}>
-                    <Icon className="w-6 h-6 text-white" />
+              <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-none shadow-lg">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Camera className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="font-semibold text-gray-800 text-base mb-1">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {feature.description}
+                  <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                    AI顔型診断を始めよう
+                  </h2>
+                  <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+                    最新のAI技術であなたの顔型を診断し、最適な美容師をマッチング
                   </p>
-                </motion.button>
-              );
-            })}
+                  <SparkleButton 
+                    onClick={() => router.push('/mobile/diagnosis')}
+                    size="lg"
+                    className="w-full"
+                  >
+                    診断スタート
+                  </SparkleButton>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Quick actions */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="grid grid-cols-2 gap-4"
+            >
+              <Button
+                variant="outline"
+                onClick={() => router.push('/mobile/stylists')}
+                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-pink-50 hover:border-pink-200"
+              >
+                <Users className="w-6 h-6 text-pink-500" />
+                <span className="text-sm">美容師を探す</span>
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => router.push('/mobile/dashboard')}
+                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-purple-50 hover:border-purple-200"
+              >
+                <Calendar className="w-6 h-6 text-purple-500" />
+                <span className="text-sm">予約確認</span>
+              </Button>
+            </motion.div>
+
+            {/* Feature Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              {features.map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <motion.div
+                    key={feature.title}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
+                  >
+                    <Card 
+                      className="hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => router.push(feature.path)}
+                    >
+                      <CardContent className="p-4">
+                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${feature.color} flex items-center justify-center mb-3`}>
+                          <Icon className="w-6 h-6 text-white" />
+                        </div>
+                        <h3 className="font-semibold text-gray-800 text-base mb-1">
+                          {feature.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {feature.description}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -176,7 +213,7 @@ export default function MobileAppPage() {
             </div>
           </div>
         </div>
-      </GradientBg>
+      </div>
     </MobileContainer>
   );
 }

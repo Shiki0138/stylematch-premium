@@ -7,9 +7,9 @@ import { MatchingService } from '@/lib/services/matching.service';
 import { BookingService } from '@/lib/services/booking.service';
 import { Calendar } from '@/components/booking/Calendar';
 import { TimeSlotPicker } from '@/components/booking/TimeSlotPicker';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Stylist, ServiceType } from '@/types/models';
 import { formatPrice, formatDate } from '@/lib/utils';
 

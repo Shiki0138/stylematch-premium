@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Sparkles } from 'lucide-react';
 
@@ -41,8 +41,8 @@ export function SparkleButton({
         disabled={disabled || loading}
         className={cn(
           'relative overflow-hidden transition-all duration-300 transform touch-feedback',
-          variant === 'primary' && 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-lg',
-          variant === 'secondary' && 'bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white shadow-lg',
+          variant === 'primary' && 'bg-gradient-to-r from-luxury-champagne to-luxury-rose-gold hover:from-luxury-champagne hover:to-luxury-rose-gold/90 text-white shadow-lg',
+          variant === 'secondary' && 'bg-gradient-to-r from-luxury-navy to-luxury-charcoal hover:from-luxury-navy/90 hover:to-luxury-charcoal/90 text-white shadow-lg',
           size === 'sm' && 'px-4 py-2 text-sm',
           size === 'md' && 'px-6 py-3',
           size === 'lg' && 'px-8 py-4 text-lg',

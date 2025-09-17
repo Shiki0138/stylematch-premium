@@ -13,9 +13,22 @@ from firebase_admin import credentials, firestore, storage
 from services.face_shape_detector import FaceShapeDetector
 from services.personal_color_analyzer import PersonalColorAnalyzer
 from utils.image_processor import ImageProcessor
+from auth import auth_middleware
+from api.advanced_face_analysis import advanced_face_bp
 
 app = Flask(__name__)
-CORS(app, origins=['http://localhost:3000', 'http://localhost:3003', 'https://stylematch.app'])
+# SECURITY: Configure CORS properly
+allowed_origins = os.environ.get('ALLOWED_ORIGINS', '').split(',')
+if not allowed_origins or allowed_origins == ['']:
+    # Default to localhost for development only
+    allowed_origins = ['http://localhost:3000', 'http://localhost:3003']
+
+CORS(app, 
+     origins=allowed_origins,
+     supports_credentials=True,
+     max_age=3600,
+     methods=['GET', 'POST', 'OPTIONS'],
+     allow_headers=['Content-Type', 'Authorization'])
 
 # Firebase初期化
 if not firebase_admin._apps:
@@ -35,6 +48,9 @@ bucket = storage.bucket()
 face_shape_detector = FaceShapeDetector()
 color_analyzer = PersonalColorAnalyzer()
 
+# Register blueprints
+app.register_blueprint(advanced_face_bp, url_prefix='/api/advanced')
+
 @app.route('/health', methods=['GET'])
 def health_check():
     """ヘルスチェックエンドポイント"""
@@ -44,6 +60,7 @@ def health_check():
     })
 
 @app.route('/api/diagnosis/face', methods=['POST'])
+@auth_middleware.require_auth
 def diagnose_face():
     """顔型診断API"""
     try:
@@ -53,8 +70,8 @@ def diagnose_face():
         if not data or 'image' not in data:
             return jsonify({'success': False, 'error': 'Image data is required'}), 400
         
-        if 'userId' not in data:
-            return jsonify({'success': False, 'error': 'User ID is required'}), 400
+        # Use authenticated user ID instead of trusting client input
+        user_id = request.user['id']
         
         # Base64画像デコード
         image_data = data['image']
@@ -124,6 +141,7 @@ def diagnose_face():
         }), 500
 
 @app.route('/api/diagnosis/color', methods=['POST'])
+@auth_middleware.require_auth
 def diagnose_color():
     """パーソナルカラー診断API"""
     try:
@@ -133,8 +151,8 @@ def diagnose_color():
         if not data or 'image' not in data:
             return jsonify({'success': False, 'error': 'Image data is required'}), 400
         
-        if 'userId' not in data:
-            return jsonify({'success': False, 'error': 'User ID is required'}), 400
+        # Use authenticated user ID instead of trusting client input
+        user_id = request.user['id']
         
         # Base64画像デコード
         image_data = data['image']
@@ -213,6 +231,7 @@ def diagnose_color():
         }), 500
 
 @app.route('/api/diagnosis/complete', methods=['POST'])
+@auth_middleware.require_auth
 def complete_diagnosis():
     """診断完了処理API（顔型＋パーソナルカラー）"""
     try:
@@ -345,4 +364,6 @@ def _get_styles_to_avoid(face_shape):
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    # SECURITY: Never run debug mode in production
+    debug_mode = os.environ.get('FLASK_ENV') == 'development'
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)

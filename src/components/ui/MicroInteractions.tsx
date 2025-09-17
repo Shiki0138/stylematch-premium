@@ -93,9 +93,9 @@ export const PulseButton: React.FC<PulseButtonProps> = ({
   };
 
   const variantStyles = {
-    primary: 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg hover:shadow-xl',
-    secondary: 'bg-gradient-to-r from-blue-500 to-teal-500 text-white shadow-lg hover:shadow-xl',
-    magical: 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black shadow-2xl hover:shadow-3xl'
+    primary: 'bg-gradient-to-r from-luxury-champagne to-luxury-rose-gold text-white shadow-lg hover:shadow-xl',
+    secondary: 'bg-gradient-to-r from-luxury-navy to-luxury-charcoal text-white shadow-lg hover:shadow-xl',
+    magical: 'bg-gradient-to-r from-luxury-champagne to-luxury-taupe text-luxury-charcoal shadow-2xl hover:shadow-3xl'
   };
 
   return (
@@ -273,7 +273,7 @@ export const MagicalLoading: React.FC<MagicalLoadingProps> = ({
                 repeat: Infinity,
                 repeatDelay: 0.5
               }}
-              className="absolute w-4 h-4 rounded-full bg-gradient-to-r from-pink-400 to-purple-500"
+              className="absolute w-4 h-4 rounded-full bg-gradient-to-r from-luxury-champagne to-luxury-rose-gold"
               style={{
                 left: `${50 + 40 * Math.cos(particle.id * 30 * Math.PI / 180)}%`,
                 top: `${50 + 40 * Math.sin(particle.id * 30 * Math.PI / 180)}%`,
@@ -317,7 +317,7 @@ export const MagicalLoading: React.FC<MagicalLoadingProps> = ({
               repeat: Infinity, 
               ease: "easeInOut" 
             }}
-            className="h-full w-1/3 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"
+            className="h-full w-1/3 bg-gradient-to-r from-luxury-champagne to-luxury-rose-gold rounded-full"
           />
         </div>
       </div>
@@ -395,7 +395,7 @@ interface SuccessConfettiProps {
 export const SuccessConfetti: React.FC<SuccessConfettiProps> = ({ isVisible, onComplete }) => {
   const confettiPieces = Array.from({ length: 30 }, (_, i) => ({
     id: i,
-    color: ['#FF6B9D', '#9B59B6', '#3498DB', '#F39C12', '#E74C3C'][i % 5],
+    color: ['#D4AF37', '#B76E79', '#87A96B', '#1F2F56', '#B8A99A'][i % 5],
     delay: Math.random() * 0.5,
     x: Math.random() * 100,
     rotation: Math.random() * 360
