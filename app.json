@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "StyleMatchClean",
-    "slug": "StyleMatchClean",
+    "name": "StyleMatch",
+    "slug": "stylematch",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,20 +10,52 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#667eea"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.stylematch.app",
+      "buildNumber": "1",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "StyleMatchでヘアスタイル分析のために写真を撮影します",
+        "NSPhotoLibraryUsageDescription": "StyleMatchで分析する写真を選択します",
+        "NSPhotoLibraryAddUsageDescription": "StyleMatchで処理した画像を保存します"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "package": "com.stylematch.app",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "StyleMatchでヘアスタイル分析のために写真を撮影します"
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "StyleMatchで分析する写真を選択します",
+          "savePhotosPermission": "StyleMatchで処理した画像を保存します"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "001a03f1-8424-425e-ace6-4d47dd067eb0"
+      }
+    },
+    "owner": "shiki0138"
   }
 }
