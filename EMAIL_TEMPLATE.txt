@@ -1,0 +1,43 @@
+件名: StyleMatch AI髪型編集アプリ テストご協力のお願い
+
+お疲れ様です！
+
+AI髪型編集アプリ「StyleMatch」のテストにご協力をお願いします。
+
+【アプリ概要】
+写真を撮るだけで、AIがあなたに似合う髪型を提案・編集します。
+
+【テスト手順】
+1. 「Expo Go」アプリをダウンロード
+   iPhone: https://apps.apple.com/app/expo-go/id982107779
+   （無料）
+
+2. Expo Goで以下URLを開く:
+   exp://fe293fe3756d.ngrok-free.app
+
+   または、QRコードをスキャン:
+   https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=exp://fe293fe3756d.ngrok-free.app
+
+3. アプリテスト（5-10分程度）
+   - 写真撮影
+   - AI髪型診断
+   - カスタム編集
+   - 保存機能
+
+【フィードバックフォーム】
+テスト完了後、以下フォームへご協力ください：
+
+https://docs.google.com/forms/d/e/1FAIpQLSdEyouBjEpCh-ZzKKMQsqMfG-V01wOvzsvVpOxvnRU979pNhg/viewform?usp=dialog
+
+【注意事項】
+- 使用制限: 10回まで
+- カメラ・写真アクセス許可が必要
+- 初回起動に時間がかかる場合あり
+
+【テスト期限】
+10月18日まで
+
+問題があれば随時ご連絡ください。
+貴重なお時間をいただき恐縮ですが、よろしくお願いします！
+
+Shiki

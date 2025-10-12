@@ -12,6 +12,7 @@ export interface StyleBlendPayload {
   color: string;
   texture: string;
   background?: string;
+  gender?: string;
   promptSummary?: string;
   promptInstructions?: string;
 }
@@ -146,6 +147,10 @@ export async function requestStyleBlend(
   payload: StyleBlendPayload,
   { signal, timeoutMs = DEFAULT_TIMEOUT_MS }: RequestOptions = {},
 ): Promise<StyleBlendResponse> {
+  console.log('=== GEMINI BRIDGE DEBUG - MALE GENDER ===');
+  console.log('Payload gender:', payload.gender);
+  console.log('Is male request:', payload.gender === 'male');
+  
   const controller = new AbortController();
   const detach = signal ? linkAbortSignals(signal, controller) : undefined;
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -157,30 +162,27 @@ export async function requestStyleBlend(
     const getBackgroundInstruction = (background?: string) => {
       switch (background) {
         case 'indoor':
-          return '- 背景をおしゃれで明るい室内環境（カフェや美容室など）に変更してください\n';
+          return 'Change the background to a stylish indoor setting (cafe or salon). ';
         case 'outdoor':
-          return '- 背景を自然で美しい屋外環境（公園や街並みなど）に変更してください\n';
+          return 'Change the background to a beautiful outdoor setting (park or street). ';
         case 'none':
         default:
-          return '- 背景は元の写真のまま変更しないでください\n';
+          return 'Keep the original background unchanged. ';
       }
     };
 
-    // Gemini 2.5 Flash Image用の画像編集プロンプト
-    const prompt = `この写真の人物の髪型を以下のスタイルに変更してください：
+    // Gemini 2.5 Flash Image用の画像編集プロンプト（性別対応版）
+    const genderContext = payload.gender === 'male' ? 'for a male person' : 'for a female person';
+    const prompt = `Create a new image with the person's hairstyle changed to:
+- Hair cut: ${payload.cut}
+- Hair color: ${payload.color}
+- Hair texture: ${payload.texture}
+- Style this ${genderContext}
 
-ヘアカット: ${payload.cut}
-ヘアカラー: ${payload.color}
-ヘアテクスチャ: ${payload.texture}
+Keep the face, skin tone, expression, and clothing exactly the same.
+${getBackgroundInstruction(payload.background)}Generate a realistic photo showing the new hairstyle.
 
-重要な指示:
-- 顔の特徴、輪郭、目、鼻、口、耳は一切変更しないでください
-- 髪の部分のみを指定されたスタイルに変更してください
-- 肌の色調と表情は完全に保持してください
-- 服装は変更しないでください
-${getBackgroundInstruction(payload.background)}- 自然で美しい仕上がりにしてください
-
-新しいヘアスタイルの画像を生成してください。`;
+IMPORTANT: This is ${payload.gender === 'male' ? 'a male styling request' : 'a female styling request'}.`;
 
     console.log('About to send request to Gemini API...');
     const requestBody = {
@@ -196,7 +198,9 @@ ${getBackgroundInstruction(payload.background)}- 自然で美しい仕上がり�
         ]
       }],
       generationConfig: {
-        response_modalities: ["IMAGE"]
+        response_modalities: ["IMAGE"],
+        temperature: 0.4,
+        maxOutputTokens: 8192
       }
     };
     console.log('Request body size:', JSON.stringify(requestBody).length);
@@ -249,8 +253,15 @@ ${getBackgroundInstruction(payload.background)}- 自然で美しい仕上がり�
     
     const imageData = imageData1 || imageData2;
     console.log('Final image data found:', imageData ? 'Yes' : 'No');
-    
+    console.log('=== MALE GENDER IMAGE DATA CHECK ===');
+    console.log('Gender:', payload.gender);
+    console.log('Image data exists:', !!imageData);
     if (imageData) {
+      console.log('Image data length:', imageData.length);
+    }
+    
+    if (imageData && imageData.length > 100) {  // Ensure we have substantial image data
+      const genderIcon = payload.gender === 'male' ? '💇‍♂️' : '💇‍♀️';
       return {
         success: true,
         fusionImage: `data:image/jpeg;base64,${imageData}`,
@@ -258,7 +269,7 @@ ${getBackgroundInstruction(payload.background)}- 自然で美しい仕上がり�
 
 ✨ Gemini AIが実際にヘアスタイルを編集しました
 
-💇‍♀️ 顔の特徴を保ちながら、美しい新しいスタイルに変更されています
+${genderIcon} 顔の特徴を保ちながら、美しい新しいスタイルに変更されています
 
 🎯 選択されたスタイルが自然に適用されました`,
         descriptor: {
@@ -269,7 +280,9 @@ ${getBackgroundInstruction(payload.background)}- 自然で美しい仕上がり�
         }
       };
     } else {
-      throw new Error('No generated image received');
+      console.log('=== IMAGE DATA ISSUE - THROWING ERROR ===');
+      console.log('Will trigger fallback mechanism in StyleBlendService');
+      throw new Error('No generated image received or image data too small');
     }
   } catch (error) {
     console.error('=== GEMINI API ERROR DETAILS ===');
