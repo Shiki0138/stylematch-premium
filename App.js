@@ -2,13 +2,46 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TouchableOpacity, Alert, Image, ScrollView, ActivityIndicator, Platform, SafeAreaView, Dimensions } from 'react-native';
 
 console.log('=== APP.JS LOADED - NEW VERSION 2024-10-08 ===');
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system/legacy';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Linking from 'expo-linking';
-import { useRef, useState } from 'react';
+import { forwardRef, useRef, useState } from 'react';
+
+console.log('=== MODULE IMPORT STATUS ===', {
+  CameraViewType: typeof CameraView,
+  CameraTypeKeys: CameraType ? Object.keys(CameraType).slice(0, 5) : 'undefined',
+  useCameraPermissions: typeof useCameraPermissions,
+  ImagePicker: ImagePicker ? Object.keys(ImagePicker).slice(0, 5) : 'undefined',
+  MediaLibrary: MediaLibrary ? Object.keys(MediaLibrary).slice(0, 5) : 'undefined',
+  FileSystem: FileSystem ? Object.keys(FileSystem).slice(0, 5) : 'undefined',
+  FileSystemDefault: FileSystem ? typeof FileSystem.default : 'undefined',
+  LinearGradient: typeof LinearGradient,
+  Linking: Linking ? Object.keys(Linking).slice(0, 5) : 'undefined'
+});
+
+if (global.ErrorUtils && !global.__STYLEMATCH_ERROR_PATCHED__) {
+  const originalHandler = global.ErrorUtils.getGlobalHandler
+    ? global.ErrorUtils.getGlobalHandler()
+    : null;
+  global.ErrorUtils.setGlobalHandler((err, isFatal) => {
+    try {
+      console.log('=== GLOBAL ERROR HANDLER ===');
+      console.log('Fatal:', isFatal);
+      console.log('Name:', err?.name);
+      console.log('Message:', err?.message);
+      console.log('Stack:', err?.stack);
+    } catch (_) {
+      // ignore logging failures
+    }
+    if (originalHandler) {
+      originalHandler(err, isFatal);
+    }
+  });
+  global.__STYLEMATCH_ERROR_PATCHED__ = true;
+}
 
 // 女性向けスタイルオプション
 const femaleCutOptions = [
@@ -251,6 +284,42 @@ class StyleBlendService {
     }
   }
 }
+
+const resolveCameraType = (facing = 'front') => {
+  if (CameraType) {
+    return facing === 'front' ? CameraType.front : CameraType.back;
+  }
+  return facing;
+};
+
+const resolveCameraComponent = () => {
+  if (typeof CameraView === 'function') {
+    return CameraView;
+  }
+  return null;
+};
+
+const CameraPreview = forwardRef(({ facing = 'front', children, ...rest }, ref) => {
+  const CameraComponent = resolveCameraComponent();
+  if (!CameraComponent) {
+    console.warn('CameraPreview: Camera component unavailable, rendering placeholder view');
+    return (
+      <View ref={ref} {...rest}>
+        {children}
+      </View>
+    );
+  }
+
+  const cameraProps = CameraComponent === CameraView
+    ? { facing: facing === 'front' ? 'front' : 'back' }
+    : { type: resolveCameraType(facing) };
+
+  return (
+    <CameraComponent ref={ref} {...cameraProps} {...rest}>
+      {children}
+    </CameraComponent>
+  );
+});
 
 export default function App() {
   const [showCamera, setShowCamera] = useState(false);
@@ -830,24 +899,42 @@ export default function App() {
       
       // メディアライブラリに保存
       console.log('Creating media library asset...');
-      const asset = await MediaLibrary.createAssetAsync(fileUri);
-      console.log('Asset created successfully:', asset.id);
+      let asset = null;
+      let librarySaved = false;
+
+      try {
+        asset = await MediaLibrary.createAssetAsync(fileUri);
+        console.log('Asset created successfully via createAssetAsync:', asset.id);
+      } catch (createError) {
+        console.warn('createAssetAsync failed, trying saveToLibraryAsync fallback:', createError);
+        try {
+          const savedId = await MediaLibrary.saveToLibraryAsync(fileUri);
+          librarySaved = true;
+          asset = savedId ? { id: savedId } : null;
+          console.log('Asset saved via saveToLibraryAsync:', savedId);
+        } catch (saveError) {
+          console.error('saveToLibraryAsync fallback failed:', saveError);
+          throw createError;
+        }
+      }
       
       // StyleMatchアルバムに追加（オプション）
-      try {
-        const albums = await MediaLibrary.getAlbumsAsync();
-        let styleMatchAlbum = albums.find(album => album.title === 'StyleMatch');
-        
-        if (!styleMatchAlbum) {
-          console.log('Creating StyleMatch album...');
-          styleMatchAlbum = await MediaLibrary.createAlbumAsync('StyleMatch', asset, false);
-        } else {
-          console.log('Adding to existing StyleMatch album...');
-          await MediaLibrary.addAssetsToAlbumAsync([asset], styleMatchAlbum.id, false);
+      if (asset && !librarySaved) {
+        try {
+          const albums = await MediaLibrary.getAlbumsAsync();
+          let styleMatchAlbum = albums.find(album => album.title === 'StyleMatch');
+          
+          if (!styleMatchAlbum) {
+            console.log('Creating StyleMatch album...');
+            styleMatchAlbum = await MediaLibrary.createAlbumAsync('StyleMatch', asset, false);
+          } else {
+            console.log('Adding to existing StyleMatch album...');
+            await MediaLibrary.addAssetsToAlbumAsync([asset], styleMatchAlbum.id, false);
+          }
+          console.log('Album operation completed');
+        } catch (albumError) {
+          console.warn('Album operation failed, but image was saved to main library:', albumError);
         }
-        console.log('Album operation completed');
-      } catch (albumError) {
-        console.warn('Album operation failed, but image was saved to main library:', albumError);
       }
       
       // 一時ファイルの削除
@@ -1012,25 +1099,25 @@ export default function App() {
         duration: '2-3ヶ月', 
         care: '毛先のトリートメントが重要', 
         frequency: '6-8週間ごと',
-        process: 'カット→ブロー→スタイリング（約90分）'
+        process: 'カット→ブロー→スタイリング'
       },
       'レイヤーミディ': { 
         duration: '3-4ヶ月', 
         care: 'スタイリング剤でボリュームキープ', 
         frequency: '8-10週間ごと',
-        process: 'レイヤーカット→トリートメント→ブロー（約120分）'
+        process: 'レイヤーカット→トリートメント→ブロー'
       },
       'うるつやロング': { 
         duration: '4-5ヶ月', 
         care: '定期的な毛先カットと保湿', 
         frequency: '10-12週間ごと',
-        process: 'カット→髪質改善トリートメント→ブロー（約150分）'
+        process: 'カット→髪質改善トリートメント→ブロー'
       },
       'エアリーショート': { 
         duration: '2-3ヶ月', 
         care: 'ワックスで動きを出す', 
         frequency: '6-8週間ごと',
-        process: 'ショートカット→軽めのパーマ→スタイリング（約120分）'
+        process: 'ショートカット→軽めのパーマ→スタイリング'
       }
     };
 
@@ -1040,49 +1127,49 @@ export default function App() {
         duration: '1-2ヶ月', 
         care: '清潔感を保つ頻繁なカット', 
         frequency: '3-4週間ごと',
-        process: 'カット→シャンプー→セット（約60分）'
+        process: 'カット→シャンプー→セット'
       },
       'フェードカット': { 
         duration: '2-3週間', 
         care: 'サイドの伸びに注意', 
         frequency: '2-3週間ごと',
-        process: 'フェードカット→ワックスセット（約45分）'
+        process: 'フェードカット→ワックスセット'
       },
       'アンダーカット': { 
         duration: '3-4週間', 
         care: 'トップとサイドのバランス', 
         frequency: '3-4週間ごと',
-        process: 'アンダーカット→トップスタイリング（約60分）'
+        process: 'アンダーカット→トップスタイリング'
       },
       'ナチュラルショート': { 
         duration: '4-6週間', 
         care: '自然な毛流れを活かす', 
         frequency: '4-6週間ごと',
-        process: 'ナチュラルカット→軽めのワックス（約45分）'
+        process: 'ナチュラルカット→軽めのワックス'
       }
     };
     
     // 女性向けカラー情報
     const femaleColorMaintenance = {
-      'ナチュラルブラック': { duration: '4-6ヶ月', care: 'カラー用シャンプーで色持ち向上', process: '根元タッチアップ（60分）' },
-      'ミルクティーブラウン': { duration: '2-3ヶ月', care: '紫シャンプーで黄ばみ防止', process: 'ブリーチ→カラー→トリートメント（180分）' },
-      'アッシュグレー': { duration: '2-3ヶ月', care: 'シルバーシャンプーでトーン維持', process: 'ダブルブリーチ→アッシュカラー（240分）' },
-      'ハニーブロンド': { duration: '2-3ヶ月', care: '紫シャンプーと保湿重視', process: 'ブリーチ→ハイライト→トーニング（200分）' },
-      'ローズゴールド': { duration: '2-3ヶ月', care: 'ピンク系シャンプーで色補正', process: 'ブリーチ→ピンクカラー→グロストリートメント（180分）' },
-      'チョコレートブラウン': { duration: '3-4ヶ月', care: 'ブラウン系トリートメント', process: 'カラー→グロストリートメント（120分）' },
-      'キャラメルブラウン': { duration: '3-4ヶ月', care: '温かみ系ケア製品', process: 'ハイライト→カラー（150分）' },
-      'アッシュベージュ': { duration: '2-3ヶ月', care: 'ベージュ系シャンプー', process: 'ブリーチ→ベージュカラー（180分）' },
-      'バーガンディ': { duration: '3-4ヶ月', care: 'レッド系シャンプー', process: 'カラー→レッドトリートメント（120分）' },
-      'ダークブラウン': { duration: '4-5ヶ月', care: 'ダーク系ケア', process: 'カラー→ツヤ出しトリートメント（90分）' }
+      'ナチュラルブラック': { duration: '4-6ヶ月', care: 'カラー用シャンプーで色持ち向上', process: '根元タッチアップ' },
+      'ミルクティーブラウン': { duration: '2-3ヶ月', care: '紫シャンプーで黄ばみ防止', process: 'ブリーチ→カラー→トリートメント' },
+      'アッシュグレー': { duration: '2-3ヶ月', care: 'シルバーシャンプーでトーン維持', process: 'ダブルブリーチ→アッシュカラー' },
+      'ハニーブロンド': { duration: '2-3ヶ月', care: '紫シャンプーと保湿重視', process: 'ブリーチ→ハイライト→トーニング' },
+      'ローズゴールド': { duration: '2-3ヶ月', care: 'ピンク系シャンプーで色補正', process: 'ブリーチ→ピンクカラー→グロストリートメント' },
+      'チョコレートブラウン': { duration: '3-4ヶ月', care: 'ブラウン系トリートメント', process: 'カラー→グロストリートメント' },
+      'キャラメルブラウン': { duration: '3-4ヶ月', care: '温かみ系ケア製品', process: 'ハイライト→カラー' },
+      'アッシュベージュ': { duration: '2-3ヶ月', care: 'ベージュ系シャンプー', process: 'ブリーチ→ベージュカラー' },
+      'バーガンディ': { duration: '3-4ヶ月', care: 'レッド系シャンプー', process: 'カラー→レッドトリートメント' },
+      'ダークブラウン': { duration: '4-5ヶ月', care: 'ダーク系ケア', process: 'カラー→ツヤ出しトリートメント' }
     };
 
     // 男性向けカラー情報
     const maleColorMaintenance = {
-      'ナチュラルブラック': { duration: '4-6ヶ月', care: 'シンプルなケア', process: '根元カラー（45分）' },
-      'ダークブラウン': { duration: '3-4ヶ月', care: 'ブラウン系ケア', process: 'ファッションカラー（60分）' },
-      'アッシュブラウン': { duration: '2-3ヶ月', care: 'アッシュ系ケア', process: 'ブリーチ→アッシュカラー（90分）' },
-      'グレーシルバー': { duration: '2-3ヶ月', care: 'シルバーシャンプー必須', process: 'ダブルブリーチ→シルバーカラー（120分）' },
-      'チョコレートブラウン': { duration: '3-4ヶ月', care: 'ビジネス向けケア', process: 'ソフトカラー（45分）' }
+      'ナチュラルブラック': { duration: '4-6ヶ月', care: 'シンプルなケア', process: '根元カラー' },
+      'ダークブラウン': { duration: '3-4ヶ月', care: 'ブラウン系ケア', process: 'ファッションカラー' },
+      'アッシュブラウン': { duration: '2-3ヶ月', care: 'アッシュ系ケア', process: 'ブリーチ→アッシュカラー' },
+      'グレーシルバー': { duration: '2-3ヶ月', care: 'シルバーシャンプー必須', process: 'ダブルブリーチ→シルバーカラー' },
+      'チョコレートブラウン': { duration: '3-4ヶ月', care: 'ビジネス向けケア', process: 'ソフトカラー' }
     };
 
     // 性別に応じた情報選択
@@ -1093,25 +1180,25 @@ export default function App() {
       duration: '3-4ヶ月', 
       care: '定期的なカット', 
       frequency: '8-10週間ごと',
-      process: 'カット→スタイリング（約60分）'
+      process: 'カット→スタイリング'
     };
     const colorInfo = colorData[color] || { 
       duration: '3-4ヶ月', 
       care: 'カラー用ヘアケア',
-      process: 'カラー施術（約90分）'
+      process: 'カラー施術'
     };
 
     // テクスチャ別の追加情報
     const textureInfo = {
-      'ストレートツヤ': '髪質改善ストレート→グロストリートメント（約180分）',
-      'ゆるふわウェーブ': 'デジタルパーマ→保湿トリートメント（約150分）',
-      '韓国風パーマ': 'コールドパーマ→スタイリング（約120分）',
-      'ナチュラルストレート': '弱酸性ストレート（約90分）',
-      'ソフトウェーブ': 'パーマ→ナチュラルセット（約90分）',
-      'テクスチャードカット': 'レザーカット→ワックスセット（約60分）'
+      'ストレートツヤ': '髪質改善ストレート→グロストリートメント',
+      'ゆるふわウェーブ': 'デジタルパーマ→保湿トリートメント',
+      '韓国風パーマ': 'コールドパーマ→スタイリング',
+      'ナチュラルストレート': '弱酸性ストレート',
+      'ソフトウェーブ': 'パーマ→ナチュラルセット',
+      'テクスチャードカット': 'レザーカット→ワックスセット'
     };
 
-    const processTime = textureInfo[texture] || 'スタイリング（約60分）';
+    const processTime = textureInfo[texture] || 'スタイリング';
 
     return {
       style: `${cut} × ${color} × ${texture}`,
@@ -1124,7 +1211,7 @@ export default function App() {
           `3. ${processTime}`,
           '4. 仕上げ・スタイリング'
         ],
-        totalTime: selectedGender === 'male' ? '約2-3時間' : '約3-4時間',
+        totalTime: 'サロンとご相談ください',
         price: selectedGender === 'male' ? '¥8,000-15,000' : '¥12,000-25,000'
       },
       maintenance: [
@@ -1646,7 +1733,7 @@ export default function App() {
   if (showCamera) {
     return (
       <View style={styles.cameraContainer}>
-        <CameraView ref={cameraRef} style={styles.camera} facing="front">
+        <CameraPreview ref={cameraRef} style={styles.camera} facing="front">
           <View style={styles.cameraButtonContainer}>
             <TouchableOpacity style={styles.cameraButton} onPress={handleTakePhoto}>
               <Text style={styles.cameraButtonText}>撮影</Text>
@@ -1658,7 +1745,7 @@ export default function App() {
               <Text style={styles.cameraButtonText}>キャンセル</Text>
             </TouchableOpacity>
           </View>
-        </CameraView>
+        </CameraPreview>
       </View>
     );
   }
@@ -1811,7 +1898,7 @@ export default function App() {
         if (showCamera) {
           return (
             <View style={styles.cameraContainer}>
-              <CameraView ref={cameraRef} style={styles.camera} facing="front">
+              <CameraPreview ref={cameraRef} style={styles.camera} facing="front">
                 <View style={styles.cameraButtonContainer}>
                   <TouchableOpacity style={styles.cameraButton} onPress={handleTakePhoto}>
                     <Text style={styles.cameraButtonText}>撮影</Text>
@@ -1823,7 +1910,7 @@ export default function App() {
                     <Text style={styles.cameraButtonText}>キャンセル</Text>
                   </TouchableOpacity>
                 </View>
-              </CameraView>
+              </CameraPreview>
             </View>
           );
         }
