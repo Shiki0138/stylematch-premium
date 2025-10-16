@@ -1275,6 +1275,11 @@ export default function App() {
 
   // 分析結果画面
   if (currentScreen === 'analysis' && capturedImage) {
+    // 性別が選択されていない場合は性別選択画面に戻す
+    if (!selectedGender) {
+      setCurrentScreen('gender_select');
+      return null;
+    }
     return (
       <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
         <ScrollView style={styles.styleContainer}>
@@ -1426,7 +1431,11 @@ export default function App() {
     
     return (
       <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
-        <ScrollView style={styles.resultContainer}>
+        <ScrollView 
+          style={styles.resultContainer} 
+          contentContainerStyle={{ paddingHorizontal: 10, maxWidth: screenWidth }}
+          showsHorizontalScrollIndicator={false}
+        >
           <View style={styles.resultHeader}>
             <Text style={styles.resultTitle}>✨ スタイル完成！</Text>
             <TouchableOpacity style={styles.backButton} onPress={resetToHome}>
@@ -2088,7 +2097,15 @@ export default function App() {
           
           <TouchableOpacity 
             style={styles.modeButton} 
-            onPress={() => setCurrentScreen('analysis')}
+            onPress={() => {
+              if (!selectedGender) {
+                Alert.alert('性別選択が必要です', 'AI顔型診断には性別情報が必要です。まず性別を選択してください。', [
+                  { text: 'OK', onPress: () => setCurrentScreen('gender_select') }
+                ]);
+              } else {
+                setCurrentScreen('analysis');
+              }
+            }}
           >
             <Text style={styles.modeButtonTitle}>🔍 AI顔型診断</Text>
             <Text style={styles.modeButtonDesc}>あなたの顔型に最適なスタイルを提案</Text>
@@ -2426,6 +2443,8 @@ const styles = StyleSheet.create({
   },
   resultContainer: {
     flex: 1,
+    width: '100%',
+    maxWidth: screenWidth,
   },
   resultHeader: {
     flexDirection: 'row',
@@ -2442,20 +2461,24 @@ const styles = StyleSheet.create({
   resultImageContainer: {
     alignItems: 'center',
     marginBottom: 15,
-    paddingHorizontal: 5,
+    paddingHorizontal: 15,
     width: '100%',
+    maxWidth: screenWidth,
   },
   comparisonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    paddingHorizontal: isSmallDevice ? 3 : 5,
-    gap: isSmallDevice ? 3 : 5,
+    paddingHorizontal: 5,
+    gap: 8,
+    maxWidth: screenWidth - 30,
+    alignSelf: 'center',
   },
   imageSection: {
     alignItems: 'center',
     flex: 1,
-    maxWidth: '47%',
+    maxWidth: '48%',
+    minWidth: Math.min(120, (screenWidth - 60) / 2),
   },
   imageSectionTitle: {
     color: 'white',
@@ -2467,6 +2490,9 @@ const styles = StyleSheet.create({
   mainImageSection: {
     alignItems: 'center',
     marginBottom: 20,
+    paddingHorizontal: 20,
+    width: '100%',
+    maxWidth: screenWidth,
   },
   mainImageTitle: {
     color: 'white',
@@ -2476,8 +2502,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   mainResultImage: {
-    width: isSmallDevice ? 240 : isMediumDevice ? 280 : 320,
-    height: isSmallDevice ? 300 : isMediumDevice ? 350 : 400,
+    width: Math.min(isSmallDevice ? 200 : isMediumDevice ? 240 : 280, screenWidth - 80),
+    height: Math.min(isSmallDevice ? 250 : isMediumDevice ? 300 : 350, (screenWidth - 80) * 1.25),
     borderRadius: isSmallDevice ? 15 : 20,
     borderWidth: 3,
     borderColor: '#FFD700',
@@ -2486,6 +2512,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+    maxWidth: screenWidth - 80,
+    alignSelf: 'center',
   },
   originalImageSection: {
     alignItems: 'center',
@@ -2522,7 +2550,7 @@ const styles = StyleSheet.create({
   mockResultImage: {
     width: '100%',
     aspectRatio: 3/4,
-    maxWidth: 150,
+    maxWidth: Math.min(150, (screenWidth - 60) / 2 - 10),
     backgroundColor: 'rgba(255,255,255,0.3)',
     borderRadius: 10,
     borderWidth: 1.5,
@@ -3199,17 +3227,22 @@ const styles = StyleSheet.create({
     paddingLeft: 5,
   },
   processInfo: {
-    flexDirection: 'row',
+    flexDirection: isSmallDevice ? 'column' : 'row',
     justifyContent: 'space-between',
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.3)',
+    paddingHorizontal: 5,
+    gap: isSmallDevice ? 5 : 0,
   },
   processInfoText: {
     color: 'white',
-    fontSize: 14,
+    fontSize: isSmallDevice ? 12 : 14,
     fontWeight: 'bold',
+    flex: isSmallDevice ? 0 : 1,
+    textAlign: isSmallDevice ? 'left' : 'center',
+    paddingHorizontal: 2,
   },
   
   // デバッグ情報スタイル
@@ -3257,7 +3290,7 @@ const styles = StyleSheet.create({
   resultImage: {
     width: '100%',
     aspectRatio: 3/4,
-    maxWidth: isSmallDevice ? 120 : isMediumDevice ? 140 : 160,
+    maxWidth: Math.min(isSmallDevice ? 120 : isMediumDevice ? 140 : 160, (screenWidth - 60) / 2 - 10),
     borderRadius: isSmallDevice ? 8 : 10,
     borderWidth: 1.5,
     borderColor: 'white',
