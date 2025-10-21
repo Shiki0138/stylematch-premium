@@ -12,9 +12,10 @@ import {
   CameraView,
   useCameraPermissions,
   CameraType,
+  type CameraCapturedPicture,
 } from 'expo-camera';
-import type { SelectedImage } from '@/hooks/useImageSelection';
-import { requestHairSegmentation } from '@/services/hairSegmentation';
+import type { SelectedImage } from '../hooks/useImageSelection';
+import { requestHairSegmentation } from '../services/hairSegmentation';
 
 interface CameraCaptureModalProps {
   visible: boolean;
@@ -58,11 +59,10 @@ export function CameraCaptureModal({ visible, onClose, onCapture }: CameraCaptur
     try {
       setIsSaving(true);
       setStatusMessage('撮影中…揺れないように保持してください');
-      const photo = await cameraRef.current.takePictureAsync({
+      const photo: CameraCapturedPicture = await cameraRef.current.takePictureAsync({
         base64: true,
         quality: 0.85,
         skipProcessing: false,
-        pictureSize: 'hd',
       });
 
       if (!photo || !photo.uri) {
@@ -70,7 +70,7 @@ export function CameraCaptureModal({ visible, onClose, onCapture }: CameraCaptur
         return;
       }
 
-      const mimeType = photo.mimeType ?? 'image/jpeg';
+      const mimeType = 'image/jpeg';
       const dataUrl = photo.base64 ? `data:${mimeType};base64,${photo.base64}` : null;
 
       let hairMask: string | undefined;
@@ -136,7 +136,6 @@ export function CameraCaptureModal({ visible, onClose, onCapture }: CameraCaptur
               }}
               style={styles.camera}
               facing={cameraType}
-              enableZoomGesture
             />
             <View style={styles.overlay} pointerEvents="none">
               <Text style={styles.statusLabel}>{statusMessage}</Text>

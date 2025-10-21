@@ -1,6 +1,6 @@
 // AI処理サービス（シミュレーション版）
 export class AIService {
-  static async analyzeHairStyle(imageUri) {
+  static async analyzeHairStyle(_imageUri) {
     // AI分析をシミュレート
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -39,7 +39,7 @@ export class AIService {
     });
   }
 
-  static async generateStyleImage(baseImageUri, targetStyle) {
+  static async generateStyleImage(_baseImageUri, targetStyle) {
     // スタイル画像生成をシミュレート
     return new Promise((resolve) => {
       setTimeout(() => {

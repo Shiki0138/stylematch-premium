@@ -1,7 +1,13 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TouchableOpacity, Alert, Image, ScrollView, ActivityIndicator, Platform, SafeAreaView, Dimensions } from 'react-native';
 
-console.log('=== APP.JS LOADED - NEW VERSION 2024-10-08 ===');
+const devLog = (...args) => {
+  if (__DEV__) {
+    console.log(...args);
+  }
+};
+
+devLog('=== APP.JS LOADED - NEW VERSION 2024-10-08 ===');
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
@@ -10,7 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Linking from 'expo-linking';
 import { forwardRef, useRef, useState } from 'react';
 
-console.log('=== MODULE IMPORT STATUS ===', {
+devLog('=== MODULE IMPORT STATUS ===', {
   CameraViewType: typeof CameraView,
   CameraTypeKeys: CameraType ? Object.keys(CameraType).slice(0, 5) : 'undefined',
   useCameraPermissions: typeof useCameraPermissions,
@@ -28,12 +34,12 @@ if (global.ErrorUtils && !global.__STYLEMATCH_ERROR_PATCHED__) {
     : null;
   global.ErrorUtils.setGlobalHandler((err, isFatal) => {
     try {
-      console.log('=== GLOBAL ERROR HANDLER ===');
-      console.log('Fatal:', isFatal);
-      console.log('Name:', err?.name);
-      console.log('Message:', err?.message);
-      console.log('Stack:', err?.stack);
-    } catch (_) {
+      console.error('=== GLOBAL ERROR HANDLER ===');
+      console.error('Fatal:', isFatal);
+      console.error('Name:', err?.name);
+      console.error('Message:', err?.message);
+      console.error('Stack:', err?.stack);
+    } catch {
       // ignore logging failures
     }
     if (originalHandler) {
@@ -107,30 +113,29 @@ const planLimits = {
 };
 
 // 実際のGemini API統合サービス
-import { requestStyleBlend, analyzeFaceShape } from './src/services/geminiBridge';
+import { requestStyleBlend } from './src/services/geminiBridge';
 
 // 画面サイズ取得
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get('window');
 const isSmallDevice = screenWidth < 375;
 const isMediumDevice = screenWidth >= 375 && screenWidth < 414;
-const isLargeDevice = screenWidth >= 414;
 
 class StyleBlendService {
   static async processStyleBlend(imageUri, selectedCut, selectedColor, selectedTexture, selectedBackground = 'none', selectedGender = 'female') {
-    console.log('=== StyleBlendService.processStyleBlend START ===');
-    console.log('=== MALE GENDER PROCESSING DEBUG ===');
-    console.log('Input params:', { selectedCut, selectedColor, selectedTexture, selectedBackground, selectedGender });
-    console.log('Gender:', selectedGender);
-    console.log('Is male processing:', selectedGender === 'male');
-    console.log('Image URI length:', imageUri ? imageUri.length : 'null');
+    devLog('=== StyleBlendService.processStyleBlend START ===');
+    devLog('=== MALE GENDER PROCESSING DEBUG ===');
+    devLog('Input params:', { selectedCut, selectedColor, selectedTexture, selectedBackground, selectedGender });
+    devLog('Gender:', selectedGender);
+    devLog('Is male processing:', selectedGender === 'male');
+    devLog('Image URI length:', imageUri ? imageUri.length : 'null');
     
     try {
-      console.log('=== GEMINI API CALL START ===');
-      console.log('API Key exists:', process.env.EXPO_PUBLIC_GEMINI_API_KEY ? 'YES' : 'NO');
-      console.log('Enable Mocks:', process.env.EXPO_PUBLIC_ENABLE_MOCKS);
-      console.log('Image URI type:', typeof imageUri);
-      console.log('Image URI length:', imageUri ? imageUri.length : 'null');
-      console.log('Attempting Gemini API call...');
+      devLog('=== GEMINI API CALL START ===');
+      devLog('API Key exists:', process.env.EXPO_PUBLIC_GEMINI_API_KEY ? 'YES' : 'NO');
+      devLog('Enable Mocks:', process.env.EXPO_PUBLIC_ENABLE_MOCKS);
+      devLog('Image URI type:', typeof imageUri);
+      devLog('Image URI length:', imageUri ? imageUri.length : 'null');
+      devLog('Attempting Gemini API call...');
       
       // 実際のGemini API呼び出し（性別情報付き）
       const result = await requestStyleBlend({
@@ -144,14 +149,14 @@ class StyleBlendService {
         promptInstructions: `${selectedGender === 'male' ? '男性' : '女性'}の顔型に合わせて自然に調整し、${selectedCut}の特徴を活かしつつ${selectedColor}で美しく仕上げてください。`
       });
       
-      console.log('=== GEMINI API RESULT ===');
-      console.log('Result success:', result.success);
-      console.log('Result fusionImage exists:', result.fusionImage ? 'YES' : 'NO');
-      console.log('Result fusionImage length:', result.fusionImage ? result.fusionImage.length : 0);
-      console.log('Full result:', result);
+      devLog('=== GEMINI API RESULT ===');
+      devLog('Result success:', result.success);
+      devLog('Result fusionImage exists:', result.fusionImage ? 'YES' : 'NO');
+      devLog('Result fusionImage length:', result.fusionImage ? result.fusionImage.length : 0);
+      devLog('Full result:', result);
       
       if (result.success && result.fusionImage) {
-        console.log('Gemini API succeeded, returning result');
+        devLog('Gemini API succeeded, returning result');
         return {
           success: true,
           fusionImageUri: result.fusionImage,
@@ -164,11 +169,11 @@ class StyleBlendService {
           }
         };
       } else {
-        console.log('Gemini API failed or returned no image, creating fallback result');
-        console.log('Selected options:', { selectedCut, selectedColor, selectedTexture });
+        devLog('Gemini API failed or returned no image, creating fallback result');
+        devLog('Selected options:', { selectedCut, selectedColor, selectedTexture });
         
         // フォールバック: 元の画像を使用して性別対応結果を返す
-        console.log('Creating fallback result for gender:', selectedGender);
+        devLog('Creating fallback result for gender:', selectedGender);
         const genderIcon = selectedGender === 'male' ? '👨‍👼' : '👩‍👼';
         const genderText = selectedGender === 'male' ? '男性向け' : '女性向け';
         
@@ -191,7 +196,7 @@ class StyleBlendService {
       console.error('Full error:', error);
       
       // エラー時のフォールバック処理（性別対応）
-      console.log('Creating error fallback result for gender:', selectedGender);
+      devLog('Creating error fallback result for gender:', selectedGender);
       const genderIcon = selectedGender === 'male' ? '👨‍👼' : '👩‍👼';
       const genderText = selectedGender === 'male' ? '男性向け' : '女性向け';
       
@@ -212,8 +217,8 @@ class StyleBlendService {
 
   static async analyzeFace(imageUri, gender = 'female') {
     try {
-      console.log('=== FACE ANALYSIS START ===');
-      console.log('Gender:', gender);
+      devLog('=== FACE ANALYSIS START ===');
+      devLog('Gender:', gender);
       
       // 女性向け顔型分析の推薦
       const femaleRecommendations = {
@@ -264,8 +269,8 @@ class StyleBlendService {
       const randomShape = shapeOptions[Math.floor(Math.random() * shapeOptions.length)];
       const rec = recommendations[randomShape];
       
-      console.log('Selected face shape:', randomShape);
-      console.log('Recommendations:', rec);
+      devLog('Selected face shape:', randomShape);
+      devLog('Recommendations:', rec);
       
       return new Promise((resolve) => {
         setTimeout(() => {
@@ -321,12 +326,14 @@ const CameraPreview = forwardRef(({ facing = 'front', children, ...rest }, ref) 
   );
 });
 
+CameraPreview.displayName = 'CameraPreview';
+
 export default function App() {
   const [showCamera, setShowCamera] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
   const [legacySelectedImage, setLegacySelectedImage] = useState(null);
   const [currentScreen, setCurrentScreen] = useState('home'); // 'home', 'mode_select', 'analysis', 'style', 'result'
-  const [selectedMode, setSelectedMode] = useState(null); // 'diagnosis' or 'custom'
+  const [, setSelectedMode] = useState(null); // 'diagnosis' or 'custom'
   const [selectedCut, setSelectedCut] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedTexture, setSelectedTexture] = useState(null);
@@ -342,14 +349,12 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [currentSettingScreen, setCurrentSettingScreen] = useState(null); // 'notifications', 'data', 'privacy', 'help'
   const [selectedBackground, setSelectedBackground] = useState('none'); // 'none', 'indoor', 'outdoor'
-  const [userPlan, setUserPlan] = useState('tester'); // 'basic', 'premium', 'unlimited', 'tester'
+  const [userPlan] = useState('tester'); // 'basic', 'premium', 'unlimited', 'tester'
   const [usageCount, setUsageCount] = useState(0);
   const [maintenanceInfo, setMaintenanceInfo] = useState(null);
   const [activeTab, setActiveTab] = useState('home'); // 'home', 'camera', 'premium', 'gallery', 'account'
   const [selectedGender, setSelectedGender] = useState(null); // 'male', 'female'
   const [compatibilityWarnings, setCompatibilityWarnings] = useState([]);
-
-  const selectedImage = capturedImage?.previewUri || legacySelectedImage || capturedImage?.fileUri || null;
 
   // 性別に応じたスタイルオプションを取得
   const getCurrentStyleOptions = () => {
@@ -605,12 +610,12 @@ export default function App() {
   };
 
   const handleStyleBlend = async () => {
-    console.log('=== handleStyleBlend START ===');
-    console.log('=== MALE GENDER DEBUGGING ===');
-    console.log('Selected gender:', selectedGender);
-    console.log('Is male selected:', selectedGender === 'male');
-    console.log('Selected options:', { selectedCut, selectedColor, selectedTexture });
-    console.log('capturedImage:', capturedImage);
+    devLog('=== handleStyleBlend START ===');
+    devLog('=== MALE GENDER DEBUGGING ===');
+    devLog('Selected gender:', selectedGender);
+    devLog('Is male selected:', selectedGender === 'male');
+    devLog('Selected options:', { selectedCut, selectedColor, selectedTexture });
+    devLog('capturedImage:', capturedImage);
     
     if (!selectedCut || !selectedColor || !selectedTexture) {
       Alert.alert('選択してください', 'カット、カラー、テクスチャをすべて選択してください');
@@ -652,12 +657,12 @@ export default function App() {
       let base64Data = capturedImage?.base64 || null;
 
       if (!base64Data && capturedImage?.fileUri) {
-        console.log('Reading base64 from fileUri...');
+        devLog('Reading base64 from fileUri...');
         try {
           base64Data = await FileSystem.readAsStringAsync(capturedImage.fileUri, {
             encoding: 'base64',
           });
-          console.log('Successfully read base64 from file');
+          devLog('Successfully read base64 from file');
         } catch (fsError) {
           console.warn('Failed to read image for style blend', fsError);
         }
@@ -671,22 +676,22 @@ export default function App() {
       }
 
       const dataUri = `data:image/jpeg;base64,${base64Data}`;
-      console.log('Preparing to call StyleBlendService with dataUri length:', dataUri.length);
+      devLog('Preparing to call StyleBlendService with dataUri length:', dataUri.length);
 
       // capturedImageを更新
       setCapturedImage((prev) => {
         if (!prev) return prev;
         const previewUri = prev.previewUri || dataUri;
         setLegacySelectedImage(previewUri);
-        console.log('Updated capturedImage with previewUri');
+        devLog('Updated capturedImage with previewUri');
         return { ...prev, base64: base64Data, previewUri };
       });
 
-      console.log('=== CALLING STYLEBLENDSERVICE ===');
-      console.log('Gender being processed:', selectedGender);
-      console.log('Cut for processing:', selectedCut);
-      console.log('Color for processing:', selectedColor);
-      console.log('Texture for processing:', selectedTexture);
+      devLog('=== CALLING STYLEBLENDSERVICE ===');
+      devLog('Gender being processed:', selectedGender);
+      devLog('Cut for processing:', selectedCut);
+      devLog('Color for processing:', selectedColor);
+      devLog('Texture for processing:', selectedTexture);
       
       const result = await StyleBlendService.processStyleBlend(
         dataUri,
@@ -697,22 +702,22 @@ export default function App() {
         selectedGender  // Pass gender to StyleBlendService
       );
       
-      console.log('=== STYLE BLEND RESULT PROCESSING ===');
-      console.log('=== MALE GENDER RESULT DEBUGGING ===');
-      console.log('Gender:', selectedGender);
-      console.log('Is male?:', selectedGender === 'male');
-      console.log('StyleBlendService result:', result);
-      console.log('Result success:', result?.success);
-      console.log('Result has fusionImageUri:', !!result?.fusionImageUri);
-      console.log('FusionImageUri type:', typeof result?.fusionImageUri);
-      console.log('FusionImageUri starts with data:', result?.fusionImageUri?.startsWith('data:'));
+      devLog('=== STYLE BLEND RESULT PROCESSING ===');
+      devLog('=== MALE GENDER RESULT DEBUGGING ===');
+      devLog('Gender:', selectedGender);
+      devLog('Is male?:', selectedGender === 'male');
+      devLog('StyleBlendService result:', result);
+      devLog('Result success:', result?.success);
+      devLog('Result has fusionImageUri:', !!result?.fusionImageUri);
+      devLog('FusionImageUri type:', typeof result?.fusionImageUri);
+      devLog('FusionImageUri starts with data:', result?.fusionImageUri?.startsWith('data:'));
       if (result?.fusionImageUri) {
-        console.log('FusionImageUri first 100 chars:', result.fusionImageUri.substring(0, 100));
+        devLog('FusionImageUri first 100 chars:', result.fusionImageUri.substring(0, 100));
       }
       
       // メンテナンス情報を生成
       const maintenance = generateMaintenanceInfo(selectedCut, selectedColor, selectedTexture);
-      console.log('Generated maintenance info:', maintenance);
+      devLog('Generated maintenance info:', maintenance);
       setMaintenanceInfo(maintenance);
       
       // 使用回数を増加
@@ -720,7 +725,7 @@ export default function App() {
       setUsageCount(newUsageCount);
       
       setStyleResult(result);
-      console.log('Setting screen to result...');
+      devLog('Setting screen to result...');
       setCurrentScreen('result');
       setIsProcessing(false);
       setLoadingMessage('');
@@ -770,10 +775,10 @@ export default function App() {
 
   const handleSaveResult = async () => {
     try {
-      console.log('=== SAVE FUNCTION START ===');
-      console.log('Current screen:', currentScreen);
-      console.log('StyleResult exists:', !!styleResult);
-      console.log('CapturedImage exists:', !!capturedImage);
+      devLog('=== SAVE FUNCTION START ===');
+      devLog('Current screen:', currentScreen);
+      devLog('StyleResult exists:', !!styleResult);
+      devLog('CapturedImage exists:', !!capturedImage);
       
       // 保存する画像を決定（優先順位つき）
       let imageToSave = null;
@@ -783,22 +788,22 @@ export default function App() {
       if (styleResult?.fusionImageUri) {
         imageToSave = styleResult.fusionImageUri;
         isAIGenerated = true;
-        console.log('Using AI generated image');
+        devLog('Using AI generated image');
       }
       // 2. 撮影した画像のpreviewUriを使用
       else if (capturedImage?.previewUri) {
         imageToSave = capturedImage.previewUri;
-        console.log('Using captured image previewUri');
+        devLog('Using captured image previewUri');
       }
       // 3. 撮影した画像のfileUriを使用
       else if (capturedImage?.fileUri) {
         imageToSave = capturedImage.fileUri;
-        console.log('Using captured image fileUri');
+        devLog('Using captured image fileUri');
       }
       // 4. legacy選択画像を使用
       else if (legacySelectedImage) {
         imageToSave = legacySelectedImage;
-        console.log('Using legacy selected image');
+        devLog('Using legacy selected image');
       }
       
       if (!imageToSave) {
@@ -807,9 +812,9 @@ export default function App() {
         return;
       }
 
-      console.log('Image to save (first 100 chars):', imageToSave.substring(0, 100));
-      console.log('Is AI generated:', isAIGenerated);
-      console.log('Image type:', imageToSave.startsWith('data:') ? 'base64' : 'file');
+      devLog('Image to save (first 100 chars):', imageToSave.substring(0, 100));
+      devLog('Is AI generated:', isAIGenerated);
+      devLog('Image type:', imageToSave.startsWith('data:') ? 'base64' : 'file');
 
       // 権限チェック
       const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -829,21 +834,19 @@ export default function App() {
         return;
       }
 
-      console.log('Permissions granted, processing image...');
+      devLog('Permissions granted, processing image...');
 
       // ファイル保存準備
       const timestamp = Date.now();
       const filename = `stylematch_${isAIGenerated ? 'ai_' : ''}${timestamp}.jpg`;
       const fileUri = `${FileSystem.documentDirectory}${filename}`;
       
-      console.log('Target file URI:', fileUri);
-
-      let savedFileUri = fileUri;
+      devLog('Target file URI:', fileUri);
 
       // 画像形式に応じた処理
       if (imageToSave.startsWith('data:image/') || imageToSave.startsWith('data:')) {
         // Base64データの場合
-        console.log('Processing base64 image...');
+        devLog('Processing base64 image...');
         
         let base64Data;
         if (imageToSave.includes(',')) {
@@ -856,18 +859,18 @@ export default function App() {
           throw new Error('Invalid base64 image data');
         }
         
-        console.log('Base64 data length:', base64Data.length);
+        devLog('Base64 data length:', base64Data.length);
         
         // Base64をファイルに書き込み
         await FileSystem.writeAsStringAsync(fileUri, base64Data, {
           encoding: 'base64',
         });
         
-        console.log('Base64 file written successfully');
+        devLog('Base64 file written successfully');
         
       } else if (imageToSave.startsWith('file://') || imageToSave.startsWith('/')) {
         // ファイルURIの場合
-        console.log('Processing file URI...');
+        devLog('Processing file URI...');
         
         // ファイルの存在確認
         const fileInfo = await FileSystem.getInfoAsync(imageToSave);
@@ -875,7 +878,7 @@ export default function App() {
           throw new Error('Source file does not exist');
         }
         
-        console.log('Source file exists, size:', fileInfo.size);
+        devLog('Source file exists, size:', fileInfo.size);
         
         // ファイルをコピー
         await FileSystem.copyAsync({
@@ -883,7 +886,7 @@ export default function App() {
           to: fileUri
         });
         
-        console.log('File copied successfully');
+        devLog('File copied successfully');
         
       } else {
         throw new Error('Unsupported image format');
@@ -895,23 +898,23 @@ export default function App() {
         throw new Error('Failed to save image file');
       }
       
-      console.log('Saved file verified, size:', savedFileInfo.size);
+      devLog('Saved file verified, size:', savedFileInfo.size);
       
       // メディアライブラリに保存
-      console.log('Creating media library asset...');
+      devLog('Creating media library asset...');
       let asset = null;
       let librarySaved = false;
 
       try {
         asset = await MediaLibrary.createAssetAsync(fileUri);
-        console.log('Asset created successfully via createAssetAsync:', asset.id);
+        devLog('Asset created successfully via createAssetAsync:', asset.id);
       } catch (createError) {
         console.warn('createAssetAsync failed, trying saveToLibraryAsync fallback:', createError);
         try {
           const savedId = await MediaLibrary.saveToLibraryAsync(fileUri);
           librarySaved = true;
           asset = savedId ? { id: savedId } : null;
-          console.log('Asset saved via saveToLibraryAsync:', savedId);
+          devLog('Asset saved via saveToLibraryAsync:', savedId);
         } catch (saveError) {
           console.error('saveToLibraryAsync fallback failed:', saveError);
           throw createError;
@@ -925,13 +928,13 @@ export default function App() {
           let styleMatchAlbum = albums.find(album => album.title === 'StyleMatch');
           
           if (!styleMatchAlbum) {
-            console.log('Creating StyleMatch album...');
+            devLog('Creating StyleMatch album...');
             styleMatchAlbum = await MediaLibrary.createAlbumAsync('StyleMatch', asset, false);
           } else {
-            console.log('Adding to existing StyleMatch album...');
+            devLog('Adding to existing StyleMatch album...');
             await MediaLibrary.addAssetsToAlbumAsync([asset], styleMatchAlbum.id, false);
           }
-          console.log('Album operation completed');
+          devLog('Album operation completed');
         } catch (albumError) {
           console.warn('Album operation failed, but image was saved to main library:', albumError);
         }
@@ -940,7 +943,7 @@ export default function App() {
       // 一時ファイルの削除
       try {
         await FileSystem.deleteAsync(fileUri, { idempotent: true });
-        console.log('Temporary file cleaned up');
+        devLog('Temporary file cleaned up');
       } catch (cleanupError) {
         console.warn('Failed to cleanup temporary file:', cleanupError);
       }
@@ -951,7 +954,7 @@ export default function App() {
         ? `${imageType}が写真アプリに保存されました！\n写真アプリの「ライブラリ」または「StyleMatch」アルバムでご確認ください。`
         : `${imageType}がギャラリーに保存されました！\nギャラリーアプリでご確認ください。`;
       
-      console.log('=== SAVE FUNCTION SUCCESS ===');
+      devLog('=== SAVE FUNCTION SUCCESS ===');
       Alert.alert('保存完了', successMessage);
       
     } catch (error) {
@@ -1037,6 +1040,7 @@ export default function App() {
         }
       }
     } catch (error) {
+      console.error('handleFaceAnalysis failed:', error);
       Alert.alert('分析エラー', '顔型分析に失敗しました。手動でスタイルを選択してください。');
     } finally {
       setIsAnalyzing(false);
@@ -1361,7 +1365,7 @@ export default function App() {
             <TouchableOpacity 
               style={styles.retakeButton} 
               onPress={() => {
-                console.log('Retaking photo...');
+                devLog('Retaking photo...');
                 // 撮影データをクリア
                 setCapturedImage(null);
                 setLegacySelectedImage(null);
@@ -1421,19 +1425,19 @@ export default function App() {
 
   // 結果画面
   if (currentScreen === 'result' && styleResult) {
-    console.log('=== RESULT SCREEN DEBUG ===');
-    console.log('selectedGender:', selectedGender);
-    console.log('capturedImage:', capturedImage);
-    console.log('styleResult:', styleResult);
-    console.log('styleResult.fusionImageUri exists:', !!styleResult.fusionImageUri);
-    console.log('styleResult.fusionImageUri length:', styleResult.fusionImageUri?.length);
-    console.log('legacySelectedImage:', legacySelectedImage);
+    devLog('=== RESULT SCREEN DEBUG ===');
+    devLog('selectedGender:', selectedGender);
+    devLog('capturedImage:', capturedImage);
+    devLog('styleResult:', styleResult);
+    devLog('styleResult.fusionImageUri exists:', !!styleResult.fusionImageUri);
+    devLog('styleResult.fusionImageUri length:', styleResult.fusionImageUri?.length);
+    devLog('legacySelectedImage:', legacySelectedImage);
     
     return (
       <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
         <ScrollView 
           style={styles.resultContainer} 
-          contentContainerStyle={{ paddingHorizontal: 10, maxWidth: screenWidth }}
+          contentContainerStyle={styles.resultContent}
           showsHorizontalScrollIndicator={false}
         >
           <View style={styles.resultHeader}>
@@ -1449,13 +1453,13 @@ export default function App() {
                 <Text style={styles.imageSectionTitle}>元の写真</Text>
                 {(() => {
                   const imageUri = capturedImage?.previewUri || legacySelectedImage || capturedImage?.fileUri;
-                  console.log('Original image URI to display:', imageUri);
+                  devLog('Original image URI to display:', imageUri);
                   return imageUri ? (
                     <Image 
                       source={{ uri: imageUri }} 
                       style={styles.resultImage}
                       onError={(error) => console.error('Original image load error:', error, 'URI:', imageUri)}
-                      onLoad={() => console.log('Original image loaded successfully, URI:', imageUri)}
+                      onLoad={() => devLog('Original image loaded successfully, URI:', imageUri)}
                     />
                   ) : (
                     <View style={styles.mockResultImage}>
@@ -1467,13 +1471,13 @@ export default function App() {
               <View style={styles.imageSection}>
                 <Text style={styles.imageSectionTitle}>スタイル後</Text>
                 {(() => {
-                  console.log('=== RESULT IMAGE DISPLAY DEBUG ===');
-                  console.log('Gender:', selectedGender);
-                  console.log('fusionImageUri exists:', !!styleResult.fusionImageUri);
-                  console.log('fusionImageUri type:', typeof styleResult.fusionImageUri);
+                  devLog('=== RESULT IMAGE DISPLAY DEBUG ===');
+                  devLog('Gender:', selectedGender);
+                  devLog('fusionImageUri exists:', !!styleResult.fusionImageUri);
+                  devLog('fusionImageUri type:', typeof styleResult.fusionImageUri);
                   if (styleResult.fusionImageUri) {
-                    console.log('fusionImageUri length:', styleResult.fusionImageUri.length);
-                    console.log('fusionImageUri format:', styleResult.fusionImageUri.substring(0, 50));
+                    devLog('fusionImageUri length:', styleResult.fusionImageUri.length);
+                    devLog('fusionImageUri format:', styleResult.fusionImageUri.substring(0, 50));
                   }
                   
                   // フォールバック機能を強化：AI生成失敗時は元の画像を表示
@@ -1481,8 +1485,8 @@ export default function App() {
                   const displayImageUri = styleResult.fusionImageUri || originalImageUri;
                   const isAIGenerated = !!styleResult.fusionImageUri;
                   
-                  console.log('Using image URI:', displayImageUri);
-                  console.log('Is AI generated:', isAIGenerated);
+                  devLog('Using image URI:', displayImageUri);
+                  devLog('Is AI generated:', isAIGenerated);
                   
                   return displayImageUri ? (
                     <View style={styles.imageWrapper}>
@@ -1498,10 +1502,10 @@ export default function App() {
                             console.error('URI starts with data:', displayImageUri?.startsWith('data:'));
                           }}
                           onLoad={() => {
-                            console.log('=== RESULT IMAGE SUCCESS ===');
-                            console.log('Gender:', selectedGender);
-                            console.log('Result image loaded successfully');
-                            console.log('AI Generated:', isAIGenerated);
+                            devLog('=== RESULT IMAGE SUCCESS ===');
+                            devLog('Gender:', selectedGender);
+                            devLog('Result image loaded successfully');
+                            devLog('AI Generated:', isAIGenerated);
                           }}
                         />
                       </TouchableOpacity>
@@ -1812,11 +1816,11 @@ export default function App() {
         
         <View style={styles.accountCard}>
           <Text style={styles.accountCardTitle}>利用状況</Text>
-          <View style={styles.usageInfo}>
-            <Text style={styles.usageText}>
+          <View style={styles.accountUsageInfo}>
+            <Text style={styles.accountUsageText}>
               {userPlan === 'tester' ? '🧪 テスターアカウント' : `現在のプラン: ${planLimits[userPlan].name}`}
             </Text>
-            <Text style={styles.usageText}>
+            <Text style={styles.accountUsageText}>
               {userPlan === 'tester' 
                 ? `テスト利用回数: ${usageCount} / ${planLimits[userPlan].maxUsage}回`
                 : `今月の利用回数: ${usageCount} / ${planLimits[userPlan].maxUsage === Infinity ? '∞' : planLimits[userPlan].maxUsage}`
@@ -1851,7 +1855,8 @@ export default function App() {
                 style={styles.feedbackButton}
                 onPress={() => {
                   const feedbackUrl = 'https://forms.gle/tHpLWmZm2mPfQMxt5';
-                  Linking.openURL(feedbackUrl).catch(err => {
+                  Linking.openURL(feedbackUrl).catch((error) => {
+                    console.error('Failed to open feedback form:', error);
                     Alert.alert('エラー', 'フィードバックフォームを開けませんでした。');
                   });
                 }}
@@ -2045,12 +2050,12 @@ export default function App() {
           <TouchableOpacity 
             style={[styles.genderButton, styles.femaleButton]} 
             onPress={() => {
-              console.log('=== FEMALE BUTTON PRESSED ===');
-              console.log('Setting gender to: female');
+              devLog('=== FEMALE BUTTON PRESSED ===');
+              devLog('Setting gender to: female');
               setSelectedGender('female');
-              console.log('Setting screen to: mode_select');
+              devLog('Setting screen to: mode_select');
               setCurrentScreen('mode_select');
-              console.log('Gender selection completed');
+              devLog('Gender selection completed');
             }}
           >
             <Text style={styles.genderButtonIcon}>👩</Text>
@@ -2061,12 +2066,12 @@ export default function App() {
           <TouchableOpacity 
             style={[styles.genderButton, styles.maleButton]} 
             onPress={() => {
-              console.log('=== MALE BUTTON PRESSED ===');
-              console.log('Setting gender to: male');
+              devLog('=== MALE BUTTON PRESSED ===');
+              devLog('Setting gender to: male');
               setSelectedGender('male');
-              console.log('Setting screen to: mode_select');
+              devLog('Setting screen to: mode_select');
               setCurrentScreen('mode_select');
-              console.log('Gender selection completed');
+              devLog('Gender selection completed');
             }}
           >
             <Text style={styles.genderButtonIcon}>👨</Text>
@@ -2446,6 +2451,11 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: screenWidth,
   },
+  resultContent: {
+    paddingHorizontal: 10,
+    maxWidth: screenWidth,
+    alignSelf: 'center',
+  },
   resultHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -2485,66 +2495,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     marginBottom: 8,
-    textAlign: 'center',
-  },
-  mainImageSection: {
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingHorizontal: 20,
-    width: '100%',
-    maxWidth: screenWidth,
-  },
-  mainImageTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  mainResultImage: {
-    width: Math.min(isSmallDevice ? 200 : isMediumDevice ? 240 : 280, screenWidth - 80),
-    height: Math.min(isSmallDevice ? 250 : isMediumDevice ? 300 : 350, (screenWidth - 80) * 1.25),
-    borderRadius: isSmallDevice ? 15 : 20,
-    borderWidth: 3,
-    borderColor: '#FFD700',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    maxWidth: screenWidth - 80,
-    alignSelf: 'center',
-  },
-  originalImageSection: {
-    alignItems: 'center',
-    marginTop: 15,
-  },
-  originalImageTitle: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  originalImage: {
-    width: 80,
-    height: 100,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
-  },
-  analysisBadge: {
-    backgroundColor: 'rgba(34, 139, 34, 0.9)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: '#32CD32',
-  },
-  analysisText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: 'bold',
     textAlign: 'center',
   },
   mockResultImage: {
@@ -2875,10 +2825,10 @@ const styles = StyleSheet.create({
     color: 'white',
     marginBottom: 15,
   },
-  usageInfo: {
+  accountUsageInfo: {
     marginBottom: 15,
   },
-  usageText: {
+  accountUsageText: {
     fontSize: 16,
     color: 'white',
     marginBottom: 8,

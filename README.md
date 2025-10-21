@@ -75,6 +75,12 @@ EXPO_PUBLIC_ENABLE_MOCKS=0
 - **File System**: Expo FileSystem
 - **Styling**: React Native StyleSheet
 
+## 🚢 Release & Submission
+
+- ビルド前に `.env` と Expo Secrets に `EXPO_PUBLIC_GEMINI_API_KEY` を設定してください。
+- iOS 提出手順は `APP_STORE_SUBMISSION.md` にまとめています。
+- 推奨フロー: `npm run lint` → 実機テスト → `eas build --profile production --platform ios` → `eas submit`。
+
 ## 📄 License
 
 Private project - All rights reserved

@@ -3,8 +3,17 @@
  * Google AI StudioのNanoBanana機能を使った実際の髪型編集
  */
 
-const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyBK6w_GZ8QJJ0Wz2X5QY3LN4M9P8R7T6V';
+const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+if (!GEMINI_API_KEY) {
+  throw new Error('Gemini API key is not configured. Set EXPO_PUBLIC_GEMINI_API_KEY in environment variables.');
+}
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent';
+
+const devLog = (...args: unknown[]) => {
+  if (__DEV__) {
+    console.log(...args);
+  }
+};
 
 export interface StyleBlendPayload {
   userImage: string;
@@ -147,9 +156,9 @@ export async function requestStyleBlend(
   payload: StyleBlendPayload,
   { signal, timeoutMs = DEFAULT_TIMEOUT_MS }: RequestOptions = {},
 ): Promise<StyleBlendResponse> {
-  console.log('=== GEMINI BRIDGE DEBUG - MALE GENDER ===');
-  console.log('Payload gender:', payload.gender);
-  console.log('Is male request:', payload.gender === 'male');
+  devLog('=== GEMINI BRIDGE DEBUG - MALE GENDER ===');
+  devLog('Payload gender:', payload.gender);
+  devLog('Is male request:', payload.gender === 'male');
   
   const controller = new AbortController();
   const detach = signal ? linkAbortSignals(signal, controller) : undefined;
@@ -184,7 +193,7 @@ ${getBackgroundInstruction(payload.background)}Generate a realistic photo showin
 
 IMPORTANT: This is ${payload.gender === 'male' ? 'a male styling request' : 'a female styling request'}.`;
 
-    console.log('About to send request to Gemini API...');
+    devLog('About to send request to Gemini API...');
     const requestBody = {
       contents: [{
         parts: [
@@ -203,7 +212,7 @@ IMPORTANT: This is ${payload.gender === 'male' ? 'a male styling request' : 'a f
         maxOutputTokens: 8192
       }
     };
-    console.log('Request body size:', JSON.stringify(requestBody).length);
+    devLog('Request body size:', JSON.stringify(requestBody).length);
     
     const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
@@ -214,7 +223,7 @@ IMPORTANT: This is ${payload.gender === 'male' ? 'a male styling request' : 'a f
       signal: controller.signal,
     });
     
-    console.log('Response received from Gemini API');
+    devLog('Response received from Gemini API');
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -223,41 +232,41 @@ IMPORTANT: This is ${payload.gender === 'male' ? 'a male styling request' : 'a f
     }
 
     const result = await response.json();
-    console.log('=== FULL GEMINI API RESPONSE ===');
-    console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-    console.log('Full response:', JSON.stringify(result, null, 2));
+    devLog('=== FULL GEMINI API RESPONSE ===');
+    devLog('Response status:', response.status);
+    devLog('Response headers:', Object.fromEntries(response.headers.entries()));
+    devLog('Full response:', JSON.stringify(result, null, 2));
     
     // 生成された画像を複数の方法で探す
-    console.log('=== SEARCHING FOR IMAGE DATA ===');
+    devLog('=== SEARCHING FOR IMAGE DATA ===');
     
     // 方法1: inline_data
     const imageData1 = result.candidates?.[0]?.content?.parts?.find(
       (part: any) => part.inline_data && part.inline_data.mime_type?.startsWith('image/')
     )?.inline_data?.data;
-    console.log('Method 1 - inline_data found:', imageData1 ? 'Yes' : 'No');
+    devLog('Method 1 - inline_data found:', imageData1 ? 'Yes' : 'No');
     
     // 方法2: inlineData (camelCase)
     const imageData2 = result.candidates?.[0]?.content?.parts?.find(
       (part: any) => part.inlineData && part.inlineData.mimeType?.startsWith('image/')
     )?.inlineData?.data;
-    console.log('Method 2 - inlineData found:', imageData2 ? 'Yes' : 'No');
+    devLog('Method 2 - inlineData found:', imageData2 ? 'Yes' : 'No');
     
     // 方法3: すべてのpartsを調べる
     if (result.candidates?.[0]?.content?.parts) {
-      console.log('All parts in response:');
+      devLog('All parts in response:');
       result.candidates[0].content.parts.forEach((part: any, index: number) => {
-        console.log(`Part ${index}:`, Object.keys(part));
+        devLog(`Part ${index}:`, Object.keys(part));
       });
     }
     
     const imageData = imageData1 || imageData2;
-    console.log('Final image data found:', imageData ? 'Yes' : 'No');
-    console.log('=== MALE GENDER IMAGE DATA CHECK ===');
-    console.log('Gender:', payload.gender);
-    console.log('Image data exists:', !!imageData);
+    devLog('Final image data found:', imageData ? 'Yes' : 'No');
+    devLog('=== MALE GENDER IMAGE DATA CHECK ===');
+    devLog('Gender:', payload.gender);
+    devLog('Image data exists:', !!imageData);
     if (imageData) {
-      console.log('Image data length:', imageData.length);
+      devLog('Image data length:', imageData.length);
     }
     
     if (imageData && imageData.length > 100) {  // Ensure we have substantial image data
@@ -280,8 +289,8 @@ ${genderIcon} 顔の特徴を保ちながら、美しい新しいスタイルに
         }
       };
     } else {
-      console.log('=== IMAGE DATA ISSUE - THROWING ERROR ===');
-      console.log('Will trigger fallback mechanism in StyleBlendService');
+      devLog('=== IMAGE DATA ISSUE - THROWING ERROR ===');
+      devLog('Will trigger fallback mechanism in StyleBlendService');
       throw new Error('No generated image received or image data too small');
     }
   } catch (error) {
@@ -296,105 +305,9 @@ ${genderIcon} 顔の特徴を保ちながら、美しい新しいスタイルに
     
     // エラーを再投げして、上位で処理させる
     throw error;
-    return {
-      success: true,
-      fusionImage: payload.userImage, // 元の画像を使用
-      narrative: `${payload.cut} × ${payload.color} × ${payload.texture} のスタイル提案
-      
-✨ 選択されたスタイルはトレンドの組み合わせです
-
-🎯 調整提案: 顔型に合わせて長さやレイヤーを調整することで、より魅力的に仕上がります
-
-💫 完成イメージ: 自然で美しい仕上がりが期待できる組み合わせです`,
-      descriptor: {
-        cut: payload.cut,
-        color: payload.color,
-        texture: payload.texture,
-        summary: 'スタイル提案完了'
-      }
-    };
   } finally {
     clearTimeout(timeoutId);
     if (detach) detach();
   }
 }
 
-// NanoBanana画像生成メソッド - Google AI StudioのNanoBanana機能を活用
-async function generateNanoBananaStyledImage(
-  originalImage: string, 
-  visualDescription: string, 
-  technicalInstructions: string
-): Promise<string> {
-  try {
-    // Gemini Vision APIを使って実際の画像編集分析を行う
-    const analysisRequest = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            { 
-              text: `あなたはプロの美容師AIです。この写真の髪型を以下の指示で変更した場合の詳細な完成イメージを説明してください：
-
-変更内容: ${visualDescription}
-技術指示: ${technicalInstructions}
-
-完成後の詳細なビジュアルを日本語で説明してください。髪の色、長さ、質感、スタイリングまで具体的に。` 
-            },
-            {
-              inline_data: {
-                mime_type: 'image/jpeg',
-                data: originalImage.split(',')[1] || originalImage
-              }
-            }
-          ]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
-        },
-      })
-    });
-
-    if (analysisRequest.ok) {
-      const analysisResult = await analysisRequest.json();
-      const analysisText = analysisResult.candidates?.[0]?.content?.parts?.[0]?.text;
-      
-      if (analysisText) {
-        console.log('NanoBanana analysis completed:', analysisText);
-        
-        // 分析結果をもとに、元の画像に効果を加えて返す
-        // 実際のNanoBanana機能では、この分析結果をもとに画像が編集される
-        return await createNanoBananaProcessedImage(originalImage, analysisText);
-      }
-    }
-
-    // フォールバック処理
-    return await createNanoBananaProcessedImage(originalImage, visualDescription);
-
-  } catch (error) {
-    console.warn('NanoBanana processing failed:', error);
-    return await createNanoBananaProcessedImage(originalImage, visualDescription);
-  }
-}
-
-// NanoBanana風の画像処理実装（模擬）
-async function createNanoBananaProcessedImage(originalImage: string, description: string): Promise<string> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // 現在は元の画像をそのまま返すが、将来的には以下を実装予定：
-      // 1. Expo ImageManipulator を使った実際の画像加工
-      // 2. 髪の部分の色調変更、形状変更
-      // 3. AI分析結果に基づく自動調整
-      
-      console.log('NanoBanana image processing simulated for:', description);
-      
-      // 元の画像をベースとした編集済み画像を返す
-      resolve(originalImage);
-    }, 3000); // NanoBanana処理をシミュレート
-  });
-}

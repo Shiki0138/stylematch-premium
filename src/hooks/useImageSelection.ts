@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { requestHairSegmentation } from '@/services/hairSegmentation';
+import { requestHairSegmentation } from '../services/hairSegmentation';
 
 export interface SelectedImage {
   uri: string;
