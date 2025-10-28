@@ -108,6 +108,7 @@ const planLimits = {
 
 // 実際のGemini API統合サービス
 import { requestStyleBlend, analyzeFaceShape } from './src/services/geminiBridge';
+import APIMonitor from './src/components/APIMonitor';
 
 // 画面サイズ取得
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -340,6 +341,7 @@ export default function App() {
   const [showImageModal, setShowImageModal] = useState(false);
   const [modalImage, setModalImage] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAPIMonitor, setShowAPIMonitor] = useState(false);
   const [currentSettingScreen, setCurrentSettingScreen] = useState(null); // 'notifications', 'data', 'privacy', 'help'
   const [selectedBackground, setSelectedBackground] = useState('none'); // 'none', 'indoor', 'outdoor'
   const [userPlan, setUserPlan] = useState('tester'); // 'basic', 'premium', 'unlimited', 'tester'
@@ -348,6 +350,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('home'); // 'home', 'camera', 'premium', 'gallery', 'account'
   const [selectedGender, setSelectedGender] = useState(null); // 'male', 'female'
   const [compatibilityWarnings, setCompatibilityWarnings] = useState([]);
+  const [titleTapCount, setTitleTapCount] = useState(0);
 
   const selectedImage = capturedImage?.previewUri || legacySelectedImage || capturedImage?.fileUri || null;
 
@@ -1946,7 +1949,19 @@ export default function App() {
       default:
         return (
           <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
-            <Text style={styles.title}>StyleMatch</Text>
+            <TouchableOpacity 
+              onPress={() => {
+                const newCount = titleTapCount + 1;
+                setTitleTapCount(newCount);
+                if (newCount >= 10) {
+                  setShowAPIMonitor(true);
+                  setTitleTapCount(0);
+                }
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.title}>StyleMatch</Text>
+            </TouchableOpacity>
             <Text style={styles.subtitle}>AI顔型分析 × スタイル生成</Text>
             
             <TouchableOpacity style={styles.button} onPress={() => setActiveTab('camera')}>
@@ -2253,6 +2268,10 @@ export default function App() {
       {renderMainContent()}
       {renderBottomNavigation()}
       {showSettings && renderSettingsScreen()}
+      <APIMonitor 
+        isVisible={showAPIMonitor} 
+        onClose={() => setShowAPIMonitor(false)} 
+      />
     </View>
   );
 }

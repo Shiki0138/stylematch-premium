@@ -1,10 +1,16 @@
 /**
  * Gemini NanoBanana画像編集サービス
  * Google AI StudioのNanoBanana機能を使った実際の髪型編集
+ * セーフティガードレール付き
  */
+
+import APILimiter from './apiLimiter';
 
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyBK6w_GZ8QJJ0Wz2X5QY3LN4M9P8R7T6V';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent';
+
+// APIリミッター初期化
+const apiLimiter = APILimiter.getInstance();
 
 export interface StyleBlendPayload {
   userImage: string;
@@ -64,6 +70,9 @@ export async function analyzeFaceShape(
   imageUri: string,
   { signal, timeoutMs = DEFAULT_TIMEOUT_MS }: RequestOptions = {},
 ): Promise<FaceAnalysisResult> {
+  // 使用前チェック（推定2000トークン）
+  await apiLimiter.checkBeforeRequest(2000);
+  
   const controller = new AbortController();
   const detach = signal ? linkAbortSignals(signal, controller) : undefined;
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -130,7 +139,12 @@ export async function analyzeFaceShape(
       throw new Error('Invalid analysis response format');
     }
 
-    return JSON.parse(jsonMatch[0]);
+    const result = JSON.parse(jsonMatch[0]);
+    
+    // 使用量記録（実際の使用量）
+    apiLimiter.recordUsage(1500);
+    
+    return result;
   } catch (error) {
     if (controller.signal.aborted) {
       throw new Error('Face analysis timed out');
@@ -150,6 +164,10 @@ export async function requestStyleBlend(
   console.log('=== GEMINI BRIDGE DEBUG - MALE GENDER ===');
   console.log('Payload gender:', payload.gender);
   console.log('Is male request:', payload.gender === 'male');
+  
+  // 使用前チェック（推定4000トークン）
+  const imageSize = Math.round(payload.userImage.length * 0.75 / 1024); // KB
+  await apiLimiter.checkBeforeRequest(4000, imageSize);
   
   const controller = new AbortController();
   const detach = signal ? linkAbortSignals(signal, controller) : undefined;
@@ -200,7 +218,7 @@ IMPORTANT: This is ${payload.gender === 'male' ? 'a male styling request' : 'a f
       generationConfig: {
         response_modalities: ["IMAGE"],
         temperature: 0.4,
-        maxOutputTokens: 8192
+        maxOutputTokens: 4096  // 8192から削減（コスト対策）
       }
     };
     console.log('Request body size:', JSON.stringify(requestBody).length);
@@ -284,6 +302,10 @@ ${genderIcon} 顔の特徴を保ちながら、美しい新しいスタイルに
       console.log('Will trigger fallback mechanism in StyleBlendService');
       throw new Error('No generated image received or image data too small');
     }
+    
+    // 成功時の使用量記録
+    apiLimiter.recordUsage(3500);
+    
   } catch (error) {
     console.error('=== GEMINI API ERROR DETAILS ===');
     console.error('Error type:', error.constructor.name);
