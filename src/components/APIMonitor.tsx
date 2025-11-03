@@ -16,17 +16,22 @@ export const APIMonitor: React.FC<APIMonitorProps> = ({ isVisible, onClose }) =>
   const [stats, setStats] = useState<any>(null);
   const [isEmergencyMode, setIsEmergencyMode] = useState(false);
 
+  const loadStats = async () => {
+    try {
+      const apiLimiter = APILimiter.getInstance();
+      const currentStats = await apiLimiter.getUsageStats();
+      setStats(currentStats);
+    } catch (error) {
+      console.error('Failed to load API limiter stats', error);
+      Alert.alert('読み込みエラー', 'API使用量の取得に失敗しました');
+    }
+  };
+
   useEffect(() => {
     if (isVisible) {
       loadStats();
     }
   }, [isVisible]);
-
-  const loadStats = () => {
-    const apiLimiter = APILimiter.getInstance();
-    const currentStats = apiLimiter.getUsageStats();
-    setStats(currentStats);
-  };
 
   const handleEmergencyStop = () => {
     Alert.alert(
@@ -41,6 +46,7 @@ export const APIMonitor: React.FC<APIMonitorProps> = ({ isVisible, onClose }) =>
             const apiLimiter = APILimiter.getInstance();
             apiLimiter.emergencyStop();
             setIsEmergencyMode(true);
+            loadStats();
             Alert.alert('✅ 緊急停止完了', 'API使用が停止されました');
           },
         },
@@ -60,6 +66,7 @@ export const APIMonitor: React.FC<APIMonitorProps> = ({ isVisible, onClose }) =>
             const apiLimiter = APILimiter.getInstance();
             apiLimiter.resumeOperation();
             setIsEmergencyMode(false);
+            loadStats();
             Alert.alert('✅ 運用再開', 'API使用が再開されました');
           },
         },

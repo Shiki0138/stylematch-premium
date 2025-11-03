@@ -6,7 +6,7 @@
 
 import APILimiter from './apiLimiter';
 
-const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyBK6w_GZ8QJJ0Wz2X5QY3LN4M9P8R7T6V';
+const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent';
 
 // APIリミッター初期化
@@ -71,6 +71,10 @@ export async function analyzeFaceShape(
   { signal, timeoutMs = DEFAULT_TIMEOUT_MS }: RequestOptions = {},
 ): Promise<FaceAnalysisResult> {
   // 使用前チェック（推定2000トークン）
+  if (!GEMINI_API_KEY) {
+    throw new Error('Gemini API key is not configured. Set EXPO_PUBLIC_GEMINI_API_KEY before using face analysis.');
+  }
+
   await apiLimiter.checkBeforeRequest(2000);
   
   const controller = new AbortController();
@@ -126,8 +130,8 @@ export async function analyzeFaceShape(
       throw new Error(`Face analysis failed: ${response.status}`);
     }
 
-    const result = await response.json();
-    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+    const responseJson = await response.json();
+    const text = responseJson.candidates?.[0]?.content?.parts?.[0]?.text;
     
     if (!text) {
       throw new Error('No analysis result received');
@@ -139,12 +143,12 @@ export async function analyzeFaceShape(
       throw new Error('Invalid analysis response format');
     }
 
-    const result = JSON.parse(jsonMatch[0]);
-    
+    const parsedResult = JSON.parse(jsonMatch[0]);
+
     // 使用量記録（実際の使用量）
-    apiLimiter.recordUsage(1500);
-    
-    return result;
+    await apiLimiter.recordUsage(1500);
+
+    return parsedResult;
   } catch (error) {
     if (controller.signal.aborted) {
       throw new Error('Face analysis timed out');
@@ -164,6 +168,10 @@ export async function requestStyleBlend(
   console.log('=== GEMINI BRIDGE DEBUG - MALE GENDER ===');
   console.log('Payload gender:', payload.gender);
   console.log('Is male request:', payload.gender === 'male');
+
+  if (!GEMINI_API_KEY) {
+    throw new Error('Gemini API key is not configured. Set EXPO_PUBLIC_GEMINI_API_KEY before using style blend.');
+  }
   
   // 使用前チェック（推定4000トークン）
   const imageSize = Math.round(payload.userImage.length * 0.75 / 1024); // KB
@@ -278,8 +286,12 @@ IMPORTANT: This is ${payload.gender === 'male' ? 'a male styling request' : 'a f
       console.log('Image data length:', imageData.length);
     }
     
+    const ESTIMATED_TOKENS = 3500;
+
     if (imageData && imageData.length > 100) {  // Ensure we have substantial image data
       const genderIcon = payload.gender === 'male' ? '💇‍♂️' : '💇‍♀️';
+
+      await apiLimiter.recordUsage(ESTIMATED_TOKENS);
       return {
         success: true,
         fusionImage: `data:image/jpeg;base64,${imageData}`,
@@ -302,10 +314,6 @@ ${genderIcon} 顔の特徴を保ちながら、美しい新しいスタイルに
       console.log('Will trigger fallback mechanism in StyleBlendService');
       throw new Error('No generated image received or image data too small');
     }
-    
-    // 成功時の使用量記録
-    apiLimiter.recordUsage(3500);
-    
   } catch (error) {
     console.error('=== GEMINI API ERROR DETAILS ===');
     console.error('Error type:', error.constructor.name);
@@ -318,23 +326,6 @@ ${genderIcon} 顔の特徴を保ちながら、美しい新しいスタイルに
     
     // エラーを再投げして、上位で処理させる
     throw error;
-    return {
-      success: true,
-      fusionImage: payload.userImage, // 元の画像を使用
-      narrative: `${payload.cut} × ${payload.color} × ${payload.texture} のスタイル提案
-      
-✨ 選択されたスタイルはトレンドの組み合わせです
-
-🎯 調整提案: 顔型に合わせて長さやレイヤーを調整することで、より魅力的に仕上がります
-
-💫 完成イメージ: 自然で美しい仕上がりが期待できる組み合わせです`,
-      descriptor: {
-        cut: payload.cut,
-        color: payload.color,
-        texture: payload.texture,
-        summary: 'スタイル提案完了'
-      }
-    };
   } finally {
     clearTimeout(timeoutId);
     if (detach) detach();
@@ -347,6 +338,10 @@ async function generateNanoBananaStyledImage(
   visualDescription: string, 
   technicalInstructions: string
 ): Promise<string> {
+  if (!GEMINI_API_KEY) {
+    throw new Error('Gemini API key is not configured. Set EXPO_PUBLIC_GEMINI_API_KEY to use NanoBanana processing.');
+  }
+
   try {
     // Gemini Vision APIを使って実際の画像編集分析を行う
     const analysisRequest = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {

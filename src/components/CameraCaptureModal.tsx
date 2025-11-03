@@ -12,6 +12,7 @@ import {
   CameraView,
   useCameraPermissions,
   CameraType,
+  type CameraCapturedPicture,
 } from 'expo-camera';
 import type { SelectedImage } from '@/hooks/useImageSelection';
 import { requestHairSegmentation } from '@/services/hairSegmentation';
@@ -62,7 +63,6 @@ export function CameraCaptureModal({ visible, onClose, onCapture }: CameraCaptur
         base64: true,
         quality: 0.85,
         skipProcessing: false,
-        pictureSize: 'hd',
       });
 
       if (!photo || !photo.uri) {
@@ -70,7 +70,8 @@ export function CameraCaptureModal({ visible, onClose, onCapture }: CameraCaptur
         return;
       }
 
-      const mimeType = photo.mimeType ?? 'image/jpeg';
+      const capturedPhoto = photo as CameraCapturedPicture & { mimeType?: string };
+      const mimeType = capturedPhoto.mimeType ?? 'image/jpeg';
       const dataUrl = photo.base64 ? `data:${mimeType};base64,${photo.base64}` : null;
 
       let hairMask: string | undefined;
@@ -136,6 +137,7 @@ export function CameraCaptureModal({ visible, onClose, onCapture }: CameraCaptur
               }}
               style={styles.camera}
               facing={cameraType}
+              // @ts-expect-error enableZoomGesture is available at runtime but missing in Expo type definitions
               enableZoomGesture
             />
             <View style={styles.overlay} pointerEvents="none">

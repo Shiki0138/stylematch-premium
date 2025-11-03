@@ -212,76 +212,113 @@ class StyleBlendService {
 
 
   static async analyzeFace(imageUri, gender = 'female') {
-    try {
-      console.log('=== FACE ANALYSIS START ===');
-      console.log('Gender:', gender);
-      
-      // 女性向け顔型分析の推薦
-      const femaleRecommendations = {
-        round: {
-          cuts: ['エアリーショート', 'レイヤーミディ'],
-          colors: ['アッシュグレー', 'ミルクティーブラウン', 'ダークブラウン'],
-          textures: ['ゆるふわウェーブ', '韓国風パーマ'],
-          reasoning: '丸顔には縦のラインを強調するスタイルがおすすめです。レイヤーで動きを出し、縦の印象を強めましょう。'
-        },
-        oval: {
-          cuts: ['つやつやボブ', 'うるつやロング', 'レイヤーミディ'],
-          colors: ['ナチュラルブラック', 'チョコレートブラウン', 'ハニーブロンド'],
-          textures: ['ストレートツヤ', 'ゆるふわウェーブ'],
-          reasoning: '理想的な顔型なので、どんなスタイルでも似合います。お好みに合わせて選択できます。'
-        },
-        square: {
-          cuts: ['うるつやロング', 'ゆるふわウェーブ'],
-          colors: ['ミルクティーブラウン', 'キャラメルブラウン'],
-          textures: ['ゆるふわウェーブ', '韓国風パーマ'],
-          reasoning: 'エラの張りを和らげるため、丸みのあるスタイルがおすすめです。'
-        }
-      };
+    console.log('=== FACE ANALYSIS START ===');
+    console.log('Gender:', gender);
 
-      // 男性向け顔型分析の推薦
-      const maleRecommendations = {
-        round: {
-          cuts: ['ビジネスショート', 'フェードカット'],
-          colors: ['ナチュラルブラック', 'ダークブラウン'],
-          textures: ['ナチュラルストレート', 'テクスチャードカット'],
-          reasoning: '丸顔には高さを出すスタイルがおすすめです。サイドを短くして縦のラインを強調しましょう。'
+    const femaleRecommendations = {
+      round: {
+        cuts: ['エアリーショート', 'レイヤーミディ'],
+        colors: ['アッシュグレー', 'ミルクティーブラウン', 'ダークブラウン'],
+        textures: ['ゆるふわウェーブ', '韓国風パーマ'],
+        reasoning: '丸顔には縦のラインを強調するスタイルがおすすめです。レイヤーで動きを出し、縦の印象を強めましょう。'
+      },
+      oval: {
+        cuts: ['つやつやボブ', 'うるつやロング', 'レイヤーミディ'],
+        colors: ['ナチュラルブラック', 'チョコレートブラウン', 'ハニーブロンド'],
+        textures: ['ストレートツヤ', 'ゆるふわウェーブ'],
+        reasoning: '理想的な顔型なので、どんなスタイルでも似合います。お好みに合わせて選択できます。'
+      },
+      square: {
+        cuts: ['うるつやロング', 'ゆるふわウェーブ'],
+        colors: ['ミルクティーブラウン', 'キャラメルブラウン'],
+        textures: ['ゆるふわウェーブ', '韓国風パーマ'],
+        reasoning: 'エラの張りを和らげるため、丸みのあるスタイルがおすすめです。'
+      },
+      heart: {
+        cuts: ['つやつやボブ', 'レイヤーミディ'],
+        colors: ['ローズゴールド', 'アッシュベージュ'],
+        textures: ['ゆるふわウェーブ', '韓国風パーマ'],
+        reasoning: '額の広さを活かしつつ顎を柔らかく見せるスタイルでバランスを整えましょう。'
+      },
+      long: {
+        cuts: ['レイヤーミディ', 'うるつやロング'],
+        colors: ['ナチュラルブラック', 'チョコレートブラウン'],
+        textures: ['ストレートツヤ', 'ゆるふわウェーブ'],
+        reasoning: '面長には横方向にボリュームを出すレイヤーや柔らかいウェーブが好相性です。'
+      }
+    };
+
+    const maleRecommendations = {
+      round: {
+        cuts: ['ビジネスショート', 'フェードカット'],
+        colors: ['ナチュラルブラック', 'ダークブラウン'],
+        textures: ['ナチュラルストレート', 'テクスチャードカット'],
+        reasoning: '丸顔には高さを出すスタイルがおすすめです。サイドを短くして縦のラインを強調しましょう。'
+      },
+      oval: {
+        cuts: ['ナチュラルショート', 'ビジネスショート', 'アンダーカット'],
+        colors: ['ナチュラルブラック', 'アッシュブラウン', 'チョコレートブラウン'],
+        textures: ['ナチュラルストレート', 'ソフトウェーブ'],
+        reasoning: '理想的な顔型です。ビジネスからカジュアルまで幅広いスタイルが似合います。'
+      },
+      square: {
+        cuts: ['ナチュラルショート', 'ソフトウェーブ'],
+        colors: ['ダークブラウン', 'アッシュブラウン'],
+        textures: ['ソフトウェーブ', 'ナチュラルストレート'],
+        reasoning: 'エラの印象を和らげるため、自然な丸みのあるスタイルがおすすめです。'
+      },
+      heart: {
+        cuts: ['フェードカット', 'アンダーカット'],
+        colors: ['ナチュラルブラック', 'グレーシルバー'],
+        textures: ['テクスチャードカット', 'ソフトウェーブ'],
+        reasoning: 'トップにボリュームを集め、顎周りをシャープに見せることで全体のバランスが整います。'
+      },
+      long: {
+        cuts: ['ソフトウェーブ', 'ナチュラルショート'],
+        colors: ['ダークブラウン', 'チョコレートブラウン'],
+        textures: ['ソフトウェーブ', 'ナチュラルストレート'],
+        reasoning: '面長には横方向の動きと束感を意識したスタイルで柔らかさを出しましょう。'
+      }
+    };
+
+    const recommendationMap = gender === 'male' ? maleRecommendations : femaleRecommendations;
+    const defaultShape = 'oval';
+
+    try {
+      const analysis = await analyzeFaceShape(imageUri, { timeoutMs: 20000 });
+      const faceShape = recommendationMap[analysis.faceShape] ? analysis.faceShape : defaultShape;
+      const curated = recommendationMap[faceShape];
+
+      console.log('Face analysis result:', analysis);
+
+      return {
+        success: true,
+        faceShape,
+        confidence: analysis.confidence,
+        recommendations: {
+          cuts: curated.cuts,
+          colors: curated.colors,
+          textures: curated.textures,
+          reasoning: analysis.recommendations?.reasoning ?? curated.reasoning,
         },
-        oval: {
-          cuts: ['ナチュラルショート', 'ビジネスショート', 'アンダーカット'],
-          colors: ['ナチュラルブラック', 'アッシュブラウン', 'チョコレートブラウン'],
-          textures: ['ナチュラルストレート', 'ソフトウェーブ'],
-          reasoning: '理想的な顔型です。ビジネスからカジュアルまで幅広いスタイルが似合います。'
-        },
-        square: {
-          cuts: ['ナチュラルショート', 'ソフトウェーブ'],
-          colors: ['ダークブラウン', 'アッシュブラウン'],
-          textures: ['ソフトウェーブ', 'ナチュラルストレート'],
-          reasoning: 'エラの印象を和らげるため、自然な丸みのあるスタイルがおすすめです。'
-        }
+        gender,
+        vendorRecommendations: analysis.recommendations,
       };
-      
-      const recommendations = gender === 'male' ? maleRecommendations : femaleRecommendations;
-      const shapeOptions = Object.keys(recommendations);
-      const randomShape = shapeOptions[Math.floor(Math.random() * shapeOptions.length)];
-      const rec = recommendations[randomShape];
-      
-      console.log('Selected face shape:', randomShape);
-      console.log('Recommendations:', rec);
-      
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            success: true,
-            faceShape: randomShape,
-            confidence: 0.88,
-            recommendations: rec,
-            gender: gender
-          });
-        }, 2000);
-      });
     } catch (error) {
       console.error('Face analysis error:', error);
-      throw new Error('顔型分析に失敗しました');
+
+      const shapeOptions = Object.keys(recommendationMap);
+      const fallbackShape = shapeOptions[Math.floor(Math.random() * shapeOptions.length)] || defaultShape;
+      const rec = recommendationMap[fallbackShape];
+
+      return {
+        success: false,
+        faceShape: fallbackShape,
+        confidence: 0.5,
+        recommendations: rec,
+        gender,
+        error: error instanceof Error ? error.message : String(error),
+      };
     }
   }
 }

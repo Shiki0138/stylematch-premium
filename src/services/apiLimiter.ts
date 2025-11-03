@@ -3,6 +3,9 @@
  * 多量のトークン使用を防ぐためのセーフティシステム
  */
 
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 export interface UsageStats {
   dailyTokens: number;
   dailyRequests: number;
@@ -37,11 +40,12 @@ class APILimiter {
   private usage: UsageStats;
   private storageKey = 'gemini_api_usage';
   private isEmergencyStop = false;
+  private ready: Promise<void>;
 
   private constructor() {
     this.limits = DEFAULT_LIMITS;
-    this.usage = this.loadUsageStats();
-    this.checkResetPeriods();
+    this.usage = this.createDefaultUsage();
+    this.ready = this.initialize();
   }
 
   public static getInstance(): APILimiter {
@@ -49,6 +53,37 @@ class APILimiter {
       APILimiter.instance = new APILimiter();
     }
     return APILimiter.instance;
+  }
+
+  private async initialize(): Promise<void> {
+    try {
+      const stored = await this.loadUsageStats();
+      if (stored) {
+        this.usage = stored;
+      }
+    } catch (error) {
+      console.warn('使用量データの読み込みに失敗:', error);
+    }
+
+    await this.checkResetPeriods();
+  }
+
+  private createDefaultUsage(): UsageStats {
+    const today = new Date().toISOString().split('T')[0];
+    const month = today.substring(0, 7);
+
+    return {
+      dailyTokens: 0,
+      dailyRequests: 0,
+      monthlyTokens: 0,
+      monthlyRequests: 0,
+      lastResetDate: today,
+      lastResetMonth: month,
+    };
+  }
+
+  private async ensureReady(): Promise<void> {
+    await this.ready;
   }
 
   // 緊急停止機能
@@ -64,6 +99,8 @@ class APILimiter {
 
   // 使用前チェック
   public async checkBeforeRequest(estimatedTokens: number, imageSize?: number): Promise<void> {
+    await this.ensureReady();
+
     if (this.isEmergencyStop) {
       throw new Error('🚨 API緊急停止中: 管理者にお問い合わせください');
     }
@@ -98,14 +135,16 @@ class APILimiter {
   }
 
   // 使用量記録
-  public recordUsage(actualTokens: number): void {
+  public async recordUsage(actualTokens: number): Promise<void> {
+    await this.ensureReady();
+
     this.usage.dailyTokens += actualTokens;
     this.usage.dailyRequests += 1;
     this.usage.monthlyTokens += actualTokens;
     this.usage.monthlyRequests += 1;
-    
-    this.saveUsageStats();
-    
+
+    await this.saveUsageStats();
+
     console.log('📊 API使用量記録:', {
       今回使用: actualTokens,
       本日累計: `${this.usage.dailyTokens}/${this.limits.dailyTokenLimit}`,
@@ -120,7 +159,9 @@ class APILimiter {
   }
 
   // 使用量取得
-  public getUsageStats(): UsageStats & { limits: UsageLimits } {
+  public async getUsageStats(): Promise<UsageStats & { limits: UsageLimits }> {
+    await this.ensureReady();
+
     return {
       ...this.usage,
       limits: this.limits
@@ -128,44 +169,48 @@ class APILimiter {
   }
 
   // 制限設定更新
-  public updateLimits(newLimits: Partial<UsageLimits>): void {
+  public async updateLimits(newLimits: Partial<UsageLimits>): Promise<void> {
+    await this.ensureReady();
     this.limits = { ...this.limits, ...newLimits };
     console.log('📋 API制限設定更新:', this.limits);
+    await this.saveUsageStats();
   }
 
-  private loadUsageStats(): UsageStats {
-    try {
-      const stored = localStorage.getItem(this.storageKey);
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch (error) {
-      console.warn('使用量データの読み込みに失敗:', error);
+  private async loadUsageStats(): Promise<UsageStats | null> {
+    if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+      const raw = localStorage.getItem(this.storageKey);
+      return raw ? (JSON.parse(raw) as UsageStats) : null;
     }
 
-    // デフォルト値
-    const today = new Date().toISOString().split('T')[0];
-    const month = today.substring(0, 7);
-    
-    return {
-      dailyTokens: 0,
-      dailyRequests: 0,
-      monthlyTokens: 0,
-      monthlyRequests: 0,
-      lastResetDate: today,
-      lastResetMonth: month
-    };
+    try {
+      const raw = await AsyncStorage.getItem(this.storageKey);
+      return raw ? (JSON.parse(raw) as UsageStats) : null;
+    } catch (error) {
+      console.error('使用量データの読み込みに失敗:', error);
+      return null;
+    }
   }
 
-  private saveUsageStats(): void {
+  private async saveUsageStats(): Promise<void> {
+    const serialized = JSON.stringify(this.usage);
+
+    if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem(this.storageKey, serialized);
+      } catch (error) {
+        console.error('使用量データの保存に失敗:', error);
+      }
+      return;
+    }
+
     try {
-      localStorage.setItem(this.storageKey, JSON.stringify(this.usage));
+      await AsyncStorage.setItem(this.storageKey, serialized);
     } catch (error) {
       console.error('使用量データの保存に失敗:', error);
     }
   }
 
-  private checkResetPeriods(): void {
+  private async checkResetPeriods(): Promise<void> {
     const today = new Date().toISOString().split('T')[0];
     const month = today.substring(0, 7);
 
@@ -185,7 +230,7 @@ class APILimiter {
       console.log('🔄 月次使用量をリセットしました');
     }
 
-    this.saveUsageStats();
+    await this.saveUsageStats();
   }
 }
 
